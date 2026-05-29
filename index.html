@@ -10,7 +10,7 @@
 <style>
 :root{--gold:#C9A84C;--gold-light:#E8C96B;--gold-dim:#7A6030;--bg-base:#0E0D0B;--bg-card:#161410;--bg-card2:#1C1A16;--border:rgba(201,168,76,0.18);--border-soft:rgba(255,255,255,0.06);--text-primary:#F0EAD8;--text-secondary:#9A9080;--text-muted:#5C5648;--success:#4CAF7A;--warning:#E8A53A;--danger:#E05252;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Sans',sans-serif;background-color:var(--bg-base);color:var(--text-primary);min-height:100vh;background-image:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(201,168,76,0.07) 0%,transparent 60%),repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,0.015) 39px,rgba(255,255,255,0.015) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,0.015) 39px,rgba(255,255,255,0.015) 40px);}
+body{font-family:'DM Sans',sans-serif;background-color:var(--bg-base);color:var(--text-primary);min-height:100vh;background-image:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(201,168,76,0.07) 0%,transparent 60%);}
 h1,h2,h3{font-family:'Playfair Display',serif;}
 .card{background:var(--bg-card);border:0.5px solid var(--border);border-radius:12px;position:relative;overflow:hidden;}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);}
@@ -20,100 +20,42 @@ h1,h2,h3{font-family:'Playfair Display',serif;}
 .section-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--text-primary);}
 .section-sub{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;}
 .gold-line{width:28px;height:2px;background:var(--gold);border-radius:1px;margin-bottom:10px;}
-.badge{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;font-weight:500;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.07em;}
+.badge{display:inline-flex;align-items:center;font-size:0.68rem;font-weight:500;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.07em;}
 .badge-ok{background:rgba(76,175,122,0.12);color:var(--success);border:0.5px solid rgba(76,175,122,0.3);}
 .badge-warn{background:rgba(232,165,58,0.12);color:var(--warning);border:0.5px solid rgba(232,165,58,0.3);}
 .badge-danger{background:rgba(224,82,82,0.12);color:var(--danger);border:0.5px solid rgba(224,82,82,0.3);}
 .sync-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,0.1);border:0.5px solid rgba(201,168,76,0.4);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:500;padding:7px 16px;border-radius:6px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.08em;}
-.sync-btn:hover{background:rgba(201,168,76,0.2);border-color:var(--gold);}
+.sync-btn:hover{background:rgba(201,168,76,0.2);}
 .status-dot{width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 6px rgba(76,175,122,0.6);}
-.status-dot.error{background:var(--danger);box-shadow:0 0 6px rgba(224,82,82,0.6);}
-.status-dot.loading{background:var(--warning);animation:pulse 1s infinite;}
+.status-dot.error{background:var(--danger);}
+.status-dot.spin{background:var(--warning);animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .alert-card{background:var(--bg-card2);border:0.5px solid var(--border-soft);border-radius:8px;padding:14px 16px;}
-.bar-container{background:rgba(255,255,255,0.05);border-radius:3px;height:6px;overflow:hidden;}
+.bar-wrap{background:rgba(255,255,255,0.05);border-radius:3px;height:6px;overflow:hidden;margin-top:3px;}
 .bar-fill{height:100%;border-radius:3px;}
 </style>
 </head>
 <body>
-
-<script>
-const SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSL5CvjsEXGF4MNnyn44zk8G5xJ8FDmbE2LbDKV8wabnY_G3neI3kCjfGZFBl3mWWKkBuWFTL_tUGjB/pub?gid=1761852221&single=true&output=csv";
-
-// ═══════════════════════════════════════════════
-// DATOS REALES HARDCODEADOS (siempre disponibles)
-// Se actualizan desde Google Sheets al sincronizar
-// ═══════════════════════════════════════════════
-const DATOS_BASE = {
-  kpis: {
-    ventas: 7399500, costos: 5954466, margen: 1445034,
-    docenas: 295.5, cobranza: "99.0%", precioProm: 25061
-  },
-  evolucion: {
-    meses: ["Nov-25","Dic-25","Ene-26","Feb-26","Mar-26","Abr-26","May-26"],
-    ingresos: [1886000, 483000, 557500, 629000, 500000, 1546000, 1798000],
-    costos:   [1512408, 405768, 414990, 501250, 401000, 1223050, 1496000],
-    margen:   [373592,   77232, 142510, 127750,  99000,  322950,  302000]
-  },
-  sabores: [
-    {label:"Carne",    docenas:167.0, pct:56.5, color:"#C9A84C"},
-    {label:"Queso",    docenas:89.5,  pct:30.3, color:"#E8C96B"},
-    {label:"Pollo",    docenas:16.5,  pct:5.6,  color:"#E08060"},
-    {label:"Choclo",   docenas:11.0,  pct:3.7,  color:"#4CAF7A"},
-    {label:"Espinaca", docenas:11.5,  pct:3.9,  color:"#6B9EE8"}
-  ],
-  stock: [
-    {s:"Carne",    disponible:11.5,  entregado:173.5, estado:"ok"},
-    {s:"Queso",    disponible:6.5,   entregado:91.5,  estado:"ok"},
-    {s:"Pollo",    disponible:1.0,   entregado:17.0,  estado:"warn"},
-    {s:"Choclo",   disponible:0,     entregado:12.0,  estado:"danger"},
-    {s:"Espinaca", disponible:-1.0,  entregado:13.0,  estado:"danger"}
-  ],
-  barrios: [
-    {label:"Laguna",            ingresos:5277500, pedidos:62, docenas:208.5},
-    {label:"Newman",            ingresos:987000,  pedidos:11, docenas:41.0},
-    {label:"Santa Bárbara",     ingresos:259000,  pedidos:3,  docenas:11.0},
-    {label:"San Francisco",     ingresos:184000,  pedidos:1,  docenas:8.0},
-    {label:"Talar del lago",    ingresos:150000,  pedidos:2,  docenas:6.0},
-    {label:"San Isidro",        ingresos:112000,  pedidos:1,  docenas:4.0},
-    {label:"Talar de Pacheco",  ingresos:92000,   pedidos:1,  docenas:4.0},
-    {label:"Pacheco Golf",      ingresos:92000,   pedidos:1,  docenas:4.0}
-  ],
-  alertas: {
-    pendientesEntrega: 0,
-    pendientesCobro: 0,
-    montoCobro: 0
-  }
-};
-</script>
-
 <div style="max-width:1400px;margin:0 auto;padding:24px 20px;">
 
   <!-- HEADER -->
   <header style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px;">
     <div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-          <path d="M4 20 C4 20, 8 8, 14 6 C20 8, 24 20, 24 20 Z" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linejoin="round"/>
-          <path d="M7 18 C9 14, 11 11, 14 10 C17 11, 19 14, 21 18" stroke="#C9A84C" stroke-width="1" fill="none" stroke-dasharray="2 2"/>
-          <circle cx="14" cy="6" r="1.5" fill="#E8C96B"/>
-        </svg>
-        <h1 style="font-size:1.55rem;font-weight:700;color:var(--text-primary);letter-spacing:-0.01em;">Las Gauchas <span style="font-size:1rem;font-weight:300;color:var(--gold);font-family:'DM Sans',sans-serif;letter-spacing:0.05em;">by Cai</span></h1>
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M4 20 C4 20, 8 8, 14 6 C20 8, 24 20, 24 20 Z" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linejoin="round"/><path d="M7 18 C9 14, 11 11, 14 10 C17 11, 19 14, 21 18" stroke="#C9A84C" stroke-width="1" fill="none" stroke-dasharray="2 2"/><circle cx="14" cy="6" r="1.5" fill="#E8C96B"/></svg>
+        <h1 style="font-size:1.55rem;font-weight:700;color:var(--text-primary);">Las Gauchas <span style="font-size:1rem;font-weight:300;color:var(--gold);font-family:'DM Sans',sans-serif;letter-spacing:0.05em;">by Cai</span></h1>
         <span style="font-size:0.7rem;color:var(--gold);border:0.5px solid var(--gold-dim);padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.1em;">Panel de Control</span>
       </div>
-      <p style="font-size:0.75rem;color:var(--text-muted);" id="last-updated">Datos al 28/05/2026</p>
+      <p style="font-size:0.75rem;color:var(--text-muted);" id="last-updated">Cargando...</p>
     </div>
     <div style="display:flex;align-items:center;gap:12px;">
       <div style="display:flex;align-items:center;gap:6px;">
-        <div class="status-dot" id="status-dot"></div>
-        <span style="font-size:0.72rem;color:var(--text-muted);" id="status-text">Datos cargados</span>
+        <div class="status-dot" id="sdot"></div>
+        <span style="font-size:0.72rem;color:var(--text-muted);" id="stxt">Iniciando</span>
       </div>
-      <button class="sync-btn" id="sync-btn" onclick="sincronizar()">
-        <svg id="sync-icon" width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-          <path d="M12 7A5 5 0 1 1 7 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M12 2v3h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+      <button class="sync-btn" onclick="sincronizar()">
+        <svg id="sico" width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M12 7A5 5 0 1 1 7 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12 2v3h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Sincronizar
       </button>
     </div>
@@ -121,367 +63,347 @@ const DATOS_BASE = {
 
   <!-- KPIs -->
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px;">
-    <div class="card" style="padding:18px 20px;">
-      <div class="kpi-label">Ventas Totales</div>
-      <div class="kpi-value" id="kpi-ventas">$7.4M</div>
-      <div class="kpi-sub">Ingresos acumulados</div>
-    </div>
-    <div class="card" style="padding:18px 20px;">
-      <div class="kpi-label">Costos Totales</div>
-      <div class="kpi-value" id="kpi-costos" style="color:#E08060;">$5.95M</div>
-      <div class="kpi-sub">Costos del negocio</div>
-    </div>
-    <div class="card" style="padding:18px 20px;">
-      <div class="kpi-label">Margen Bruto</div>
-      <div class="kpi-value" id="kpi-margen" style="color:var(--success);">$1.45M</div>
-      <div class="kpi-sub" id="kpi-margen-pct">19.5% del ingreso</div>
-    </div>
-    <div class="card" style="padding:18px 20px;">
-      <div class="kpi-label">Docenas Vendidas</div>
-      <div class="kpi-value" id="kpi-docenas">295.5 doz.</div>
-      <div class="kpi-sub">Volumen total</div>
-    </div>
-    <div class="card" style="padding:18px 20px;">
-      <div class="kpi-label">Ratio de Cobranza</div>
-      <div class="kpi-value" id="kpi-cobranza" style="color:var(--success);">99.0%</div>
-      <div class="kpi-sub">Cobrado vs facturado</div>
-    </div>
+    <div class="card" style="padding:18px 20px;"><div class="kpi-label">Ventas Totales</div><div class="kpi-value" id="kv">—</div><div class="kpi-sub">Ingresos acumulados</div></div>
+    <div class="card" style="padding:18px 20px;"><div class="kpi-label">Costos Totales</div><div class="kpi-value" id="kc" style="color:#E08060;">—</div><div class="kpi-sub">Costos del negocio</div></div>
+    <div class="card" style="padding:18px 20px;"><div class="kpi-label">Margen Bruto</div><div class="kpi-value" id="km" style="color:var(--success);">—</div><div class="kpi-sub" id="kmp">— del ingreso</div></div>
+    <div class="card" style="padding:18px 20px;"><div class="kpi-label">Docenas Vendidas</div><div class="kpi-value" id="kd">—</div><div class="kpi-sub">Volumen total</div></div>
+    <div class="card" style="padding:18px 20px;"><div class="kpi-label">Ratio de Cobranza</div><div class="kpi-value" id="kcob" style="color:var(--success);">—</div><div class="kpi-sub">Cobrado vs facturado</div></div>
   </div>
 
-  <!-- ROW 2: Evolución + Dona -->
+  <!-- Evolución + Dona -->
   <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:16px;">
     <div class="card" style="padding:22px 24px;">
       <div class="gold-line"></div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:8px;">
-        <div>
-          <div class="section-title">Evolución Mensual</div>
-          <div class="section-sub" style="margin-top:3px;">Ingresos vs Costos del negocio</div>
-        </div>
+        <div><div class="section-title">Evolución Mensual</div><div class="section-sub" style="margin-top:3px;">Ingresos vs Costos del negocio</div></div>
         <div style="display:flex;gap:14px;font-size:0.72rem;">
-          <span style="display:flex;align-items:center;gap:5px;color:var(--text-secondary);"><span style="width:20px;height:2px;background:var(--gold);display:inline-block;border-radius:1px;"></span>Ingresos</span>
-          <span style="display:flex;align-items:center;gap:5px;color:var(--text-secondary);"><span style="width:20px;height:0;display:inline-block;border-top:2px dashed #E08060;"></span>Costos</span>
+          <span style="display:flex;align-items:center;gap:5px;color:var(--text-secondary);"><span style="width:20px;height:2px;background:var(--gold);display:inline-block;"></span>Ingresos</span>
+          <span style="display:flex;align-items:center;gap:5px;color:var(--text-secondary);"><span style="width:20px;border-top:2px dashed #E08060;display:inline-block;"></span>Costos</span>
           <span style="display:flex;align-items:center;gap:5px;color:var(--text-secondary);"><span style="width:10px;height:10px;background:rgba(76,175,122,0.3);border-radius:2px;display:inline-block;"></span>Margen</span>
         </div>
       </div>
-      <div style="position:relative;height:240px;">
-        <canvas id="chartEvolucion" role="img" aria-label="Evolución mensual de ingresos y costos">Sin datos.</canvas>
-      </div>
+      <div style="position:relative;height:240px;"><canvas id="cEv" role="img" aria-label="Evolución mensual"></canvas></div>
     </div>
     <div class="card" style="padding:22px 24px;">
       <div class="gold-line"></div>
       <div class="section-title" style="margin-bottom:3px;">Mix de Sabores</div>
       <div class="section-sub" style="margin-bottom:16px;">% de docenas vendidas</div>
-      <div style="position:relative;height:180px;">
-        <canvas id="chartSabores" role="img" aria-label="Mix de sabores vendidos">Sin datos.</canvas>
-      </div>
-      <div id="legend-sabores" style="margin-top:14px;display:flex;flex-direction:column;gap:6px;font-size:0.72rem;"></div>
+      <div style="position:relative;height:180px;"><canvas id="cSab" role="img" aria-label="Mix de sabores"></canvas></div>
+      <div id="legSab" style="margin-top:14px;display:flex;flex-direction:column;gap:6px;"></div>
     </div>
   </div>
 
-  <!-- ROW 3: Stock + Barrios -->
+  <!-- Stock + Barrios -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
     <div class="card" style="padding:22px 24px;">
       <div class="gold-line"></div>
       <div class="section-title" style="margin-bottom:3px;">Stock por Variedad</div>
       <div class="section-sub" style="margin-bottom:16px;">Disponible vs. entregado</div>
-      <div id="stock-table" style="display:flex;flex-direction:column;gap:12px;"></div>
+      <div id="stockTbl" style="display:flex;flex-direction:column;gap:12px;"></div>
     </div>
     <div class="card" style="padding:22px 24px;">
       <div class="gold-line"></div>
       <div class="section-title" style="margin-bottom:3px;">Facturación por Zona</div>
       <div class="section-sub" style="margin-bottom:16px;">Top barrios por ingresos</div>
-      <div style="position:relative;height:320px;" id="chart-barrios-wrap">
-        <canvas id="chartBarrios" role="img" aria-label="Facturación por barrio">Sin datos.</canvas>
-      </div>
+      <div style="position:relative;height:320px;"><canvas id="cBar" role="img" aria-label="Barrios"></canvas></div>
     </div>
   </div>
 
-  <!-- ROW 4: Alertas -->
+  <!-- Alertas -->
   <div class="card" style="padding:22px 24px;margin-bottom:16px;">
     <div class="gold-line"></div>
     <div class="section-title" style="margin-bottom:14px;">Alertas de Gestión</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
-      <div class="alert-card">
-        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--warning);margin-bottom:8px;">Pedidos Pendientes de Entrega</div>
-        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;" id="alert-pendientes-entrega">0</div>
-        <div style="font-size:0.72rem;color:var(--text-muted);">pedidos en curso</div>
-      </div>
-      <div class="alert-card">
-        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--gold);margin-bottom:8px;">Pedidos Pendientes de Cobro</div>
-        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;" id="alert-pendientes-cobro">0</div>
-        <div style="font-size:0.72rem;color:var(--text-muted);">pedidos sin cobrar</div>
-      </div>
-      <div class="alert-card">
-        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--danger);margin-bottom:8px;">Monto Pendiente de Cobrar</div>
-        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;" id="alert-monto-cobro">$0</div>
-        <div style="font-size:0.72rem;color:var(--text-muted);">pesos sin cobrar</div>
-      </div>
-      <div class="alert-card">
-        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--success);margin-bottom:8px;">Precio Promedio / Docena</div>
-        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;" id="alert-precio-promedio">$25K</div>
-        <div style="font-size:0.72rem;color:var(--text-muted);">ingreso por docena</div>
-      </div>
+      <div class="alert-card"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--warning);margin-bottom:8px;">Pedidos Pend. de Entrega</div><div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;" id="aPE">—</div><div style="font-size:0.72rem;color:var(--text-muted);">pedidos en curso</div></div>
+      <div class="alert-card"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--gold);margin-bottom:8px;">Pedidos Pend. de Cobro</div><div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;" id="aPC">—</div><div style="font-size:0.72rem;color:var(--text-muted);">pedidos sin cobrar</div></div>
+      <div class="alert-card"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--danger);margin-bottom:8px;">Monto Pendiente de Cobrar</div><div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;" id="aMC">—</div><div style="font-size:0.72rem;color:var(--text-muted);">pesos sin cobrar</div></div>
+      <div class="alert-card"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--success);margin-bottom:8px;">Precio Promedio / Docena</div><div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;" id="aPP">—</div><div style="font-size:0.72rem;color:var(--text-muted);">ingreso por docena</div></div>
     </div>
   </div>
 
-  <footer style="text-align:center;padding:12px 0;color:var(--text-muted);font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;">
-    Panel de Control · Las Gauchas by Cai · Datos en tiempo real desde Google Sheets
-  </footer>
+  <footer style="text-align:center;padding:12px 0;color:var(--text-muted);font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;">Panel de Control · Las Gauchas by Cai · Datos en tiempo real desde Google Sheets</footer>
 </div>
 
 <script>
-let chartEvolucion=null, chartSabores=null, chartBarrios=null;
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSL5CvjsEXGF4MNnyn44zk8G5xJ8FDmbE2LbDKV8wabnY_G3neI3kCjfGZFBl3mWWKkBuWFTL_tUGjB/pub?gid=1761852221&single=true&output=csv";
 
-function fmtP(n){
-  if(!n||isNaN(n))return'$0';
-  if(n>=1000000){const m=(n/1000000).toFixed(2);return'$'+m+'M';}
-  if(n>=1000)return'$'+Math.round(n/1000).toLocaleString('es-AR')+'K';
-  return'$'+Math.round(n).toLocaleString('es-AR');
+let chEv=null, chSab=null, chBar=null;
+
+// ─── FORMATEO ───────────────────────────────────────────
+function fM(n){
+  if(!n||isNaN(n)) return '$0';
+  if(n>=1000000) return '$'+(n/1000000).toFixed(2)+'M';
+  if(n>=1000)    return '$'+Math.round(n/1000).toLocaleString('es-AR')+'K';
+  return '$'+Math.round(n).toLocaleString('es-AR');
 }
 
-function renderAll(d){
+// ─── RENDER ─────────────────────────────────────────────
+function render(D){
   // KPIs
-  document.getElementById('kpi-ventas').textContent   = fmtP(d.kpis.ventas);
-  document.getElementById('kpi-costos').textContent   = fmtP(d.kpis.costos);
-  document.getElementById('kpi-margen').textContent   = fmtP(d.kpis.margen);
-  document.getElementById('kpi-docenas').textContent  = d.kpis.docenas.toFixed(1)+' doz.';
-  document.getElementById('kpi-cobranza').textContent = d.kpis.cobranza;
-  document.getElementById('kpi-margen-pct').textContent = ((d.kpis.margen/d.kpis.ventas)*100).toFixed(1)+'% del ingreso';
-  const pp = d.kpis.precioProm||Math.round(d.kpis.ventas/d.kpis.docenas)||0;
-  document.getElementById('alert-precio-promedio').textContent = fmtP(pp);
-  document.getElementById('alert-pendientes-entrega').textContent = d.alertas.pendientesEntrega;
-  document.getElementById('alert-pendientes-cobro').textContent   = d.alertas.pendientesCobro;
-  document.getElementById('alert-monto-cobro').textContent        = d.alertas.montoCobro > 0 ? fmtP(d.alertas.montoCobro) : '$0';
+  document.getElementById('kv').textContent   = fM(D.ventas);
+  document.getElementById('kc').textContent   = fM(D.costos);
+  document.getElementById('km').textContent   = fM(D.margen);
+  document.getElementById('kmp').textContent  = ((D.margen/D.ventas)*100).toFixed(1)+'% del ingreso';
+  document.getElementById('kd').textContent   = D.docenas.toFixed(1)+' doz.';
+  document.getElementById('kcob').textContent = D.cobranza;
+  document.getElementById('aPE').textContent  = D.pendEnt;
+  document.getElementById('aPC').textContent  = D.pendCob;
+  document.getElementById('aMC').textContent  = D.montoCob>0 ? fM(D.montoCob) : '$0';
+  document.getElementById('aPP').textContent  = fM(Math.round(D.ventas/D.docenas));
 
   // Evolución
-  if(chartEvolucion) chartEvolucion.destroy();
-  chartEvolucion = new Chart(document.getElementById('chartEvolucion').getContext('2d'),{
+  if(chEv) chEv.destroy();
+  chEv = new Chart(document.getElementById('cEv').getContext('2d'),{
     type:'line',
-    data:{labels:d.evolucion.meses,datasets:[
-      {label:'Ingresos',data:d.evolucion.ingresos,borderColor:'#C9A84C',backgroundColor:'rgba(201,168,76,0.08)',fill:true,tension:0.4,borderWidth:2,pointRadius:4,pointBackgroundColor:'#C9A84C',pointBorderColor:'#0E0D0B',pointBorderWidth:1.5},
-      {label:'Costos',  data:d.evolucion.costos,  borderColor:'#E08060',backgroundColor:'rgba(224,128,96,0.05)',fill:true,tension:0.4,borderWidth:2,borderDash:[5,4],pointRadius:3,pointBackgroundColor:'#E08060',pointBorderColor:'#0E0D0B',pointBorderWidth:1.5},
-      {label:'Margen',  data:d.evolucion.margen,  borderColor:'#4CAF7A',backgroundColor:'rgba(76,175,122,0.12)',fill:true,tension:0.4,borderWidth:1.5,pointRadius:3,pointBackgroundColor:'#4CAF7A'}
+    data:{labels:D.meses,datasets:[
+      {label:'Ingresos',data:D.ingresos,borderColor:'#C9A84C',backgroundColor:'rgba(201,168,76,0.08)',fill:true,tension:0.4,borderWidth:2,pointRadius:4,pointBackgroundColor:'#C9A84C',pointBorderColor:'#0E0D0B',pointBorderWidth:1.5},
+      {label:'Costos',  data:D.costos2, borderColor:'#E08060',backgroundColor:'rgba(224,128,96,0.05)',fill:true,tension:0.4,borderWidth:2,borderDash:[5,4],pointRadius:3,pointBackgroundColor:'#E08060',pointBorderColor:'#0E0D0B',pointBorderWidth:1.5},
+      {label:'Margen',  data:D.margen2, borderColor:'#4CAF7A',backgroundColor:'rgba(76,175,122,0.12)',fill:true,tension:0.4,borderWidth:1.5,pointRadius:3,pointBackgroundColor:'#4CAF7A'}
     ]},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(22,20,16,0.96)',borderColor:'rgba(201,168,76,0.3)',borderWidth:0.5,titleColor:'#C9A84C',bodyColor:'#9A9080',padding:10,callbacks:{label:c=>' '+c.dataset.label+': '+fmtP(c.parsed.y)}}},
-      scales:{x:{ticks:{color:'#5C5648',font:{size:11},autoSkip:false,maxRotation:0},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},y:{ticks:{color:'#5C5648',font:{size:11},callback:v=>fmtP(v)},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}}}}
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(22,20,16,0.96)',borderColor:'rgba(201,168,76,0.3)',borderWidth:0.5,titleColor:'#C9A84C',bodyColor:'#9A9080',padding:10,callbacks:{label:c=>' '+c.dataset.label+': '+fM(c.parsed.y)}}},
+      scales:{
+        x:{ticks:{color:'#5C5648',font:{size:11},autoSkip:false,maxRotation:0},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},
+        y:{ticks:{color:'#5C5648',font:{size:11},callback:v=>fM(v)},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}}
+      }
+    }
   });
 
   // Sabores
-  if(chartSabores) chartSabores.destroy();
-  chartSabores = new Chart(document.getElementById('chartSabores').getContext('2d'),{
+  if(chSab) chSab.destroy();
+  chSab = new Chart(document.getElementById('cSab').getContext('2d'),{
     type:'doughnut',
-    data:{labels:d.sabores.map(s=>s.label),datasets:[{data:d.sabores.map(s=>s.docenas),backgroundColor:d.sabores.map(s=>s.color),borderColor:'#0E0D0B',borderWidth:2,hoverOffset:6}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(22,20,16,0.96)',borderColor:'rgba(201,168,76,0.3)',borderWidth:0.5,titleColor:'#C9A84C',bodyColor:'#9A9080',padding:10,callbacks:{label:c=>' '+c.label+': '+c.parsed.toFixed(1)+' doz. ('+d.sabores[c.dataIndex].pct+'%)'}}}}
+    data:{labels:D.sabores.map(s=>s.n),datasets:[{data:D.sabores.map(s=>s.d),backgroundColor:D.sabores.map(s=>s.c),borderColor:'#0E0D0B',borderWidth:2,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(22,20,16,0.96)',borderColor:'rgba(201,168,76,0.3)',borderWidth:0.5,titleColor:'#C9A84C',bodyColor:'#9A9080',padding:10,callbacks:{label:c=>' '+c.label+': '+c.parsed.toFixed(1)+' doz. ('+D.sabores[c.dataIndex].p+'%)'}}}}
   });
-  const leg=document.getElementById('legend-sabores');
-  leg.innerHTML='';
-  d.sabores.forEach(s=>{
+  const leg=document.getElementById('legSab'); leg.innerHTML='';
+  D.sabores.forEach(s=>{
     const el=document.createElement('div');
     el.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;';
-    el.innerHTML='<span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:'+s.color+';flex-shrink:0;"></span><span style="color:var(--text-secondary);font-size:0.72rem;">'+s.label+'</span></span><span style="font-size:0.72rem;color:var(--text-primary);font-weight:500;">'+s.pct+'%</span>';
+    el.innerHTML='<span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:'+s.c+';flex-shrink:0;"></span><span style="color:var(--text-secondary);font-size:0.72rem;">'+s.n+'</span></span><span style="font-size:0.72rem;color:var(--text-primary);font-weight:500;">'+s.p+'%</span>';
     leg.appendChild(el);
   });
 
   // Stock
-  const sc=document.getElementById('stock-table');
-  sc.innerHTML='';
-  const maxV=Math.max(...d.stock.map(s=>Math.max(Math.abs(s.disponible),s.entregado)));
-  d.stock.forEach(s=>{
+  const sc=document.getElementById('stockTbl'); sc.innerHTML='';
+  const mx=Math.max(...D.stock.map(s=>Math.max(Math.abs(s.disp),s.entr)));
+  D.stock.forEach(s=>{
     let bc='badge-ok',bl='OK';
-    if(s.estado==='danger'){ bc='badge-danger'; bl='Sin stock'; }
-    else if(s.estado==='warn'){ bc='badge-warn'; bl='Bajo'; }
-    const pd=maxV>0?(Math.max(0,s.disponible)/maxV)*100:0;
-    const pe=maxV>0?(s.entregado/maxV)*100:0;
+    if(s.est==='danger'){bc='badge-danger';bl='Sin stock';}
+    else if(s.est==='warn'){bc='badge-warn';bl='Bajo';}
+    const pd=mx>0?(Math.max(0,s.disp)/mx)*100:0;
+    const pe=mx>0?(s.entr/mx)*100:0;
     const el=document.createElement('div');
-    el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:0.82rem;font-weight:500;color:var(--text-primary);">'+s.s+'</span><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:0.7rem;color:var(--text-muted);">Disp: <strong style="color:var(--text-secondary);">'+s.disponible+'</strong> · Entr: <strong style="color:var(--text-secondary);">'+s.entregado+'</strong></span><span class="badge '+bc+'">'+bl+'</span></div></div><div style="display:flex;flex-direction:column;gap:3px;"><div class="bar-container"><div class="bar-fill" style="width:'+pd+'%;background:var(--gold);"></div></div><div class="bar-container"><div class="bar-fill" style="width:'+pe+'%;background:rgba(201,168,76,0.3);"></div></div></div>';
+    el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:0.82rem;font-weight:500;color:var(--text-primary);">'+s.n+'</span><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:0.7rem;color:var(--text-muted);">Disp: <strong style="color:var(--text-secondary);">'+s.disp+'</strong> · Entr: <strong style="color:var(--text-secondary);">'+s.entr+'</strong></span><span class="badge '+bc+'">'+bl+'</span></div></div><div style="display:flex;flex-direction:column;gap:3px;"><div class="bar-wrap"><div class="bar-fill" style="width:'+pd+'%;background:var(--gold);"></div></div><div class="bar-wrap"><div class="bar-fill" style="width:'+pe+'%;background:rgba(201,168,76,0.3);"></div></div></div>';
     sc.appendChild(el);
   });
 
   // Barrios
-  if(chartBarrios) chartBarrios.destroy();
-  chartBarrios = new Chart(document.getElementById('chartBarrios').getContext('2d'),{
+  if(chBar) chBar.destroy();
+  chBar = new Chart(document.getElementById('cBar').getContext('2d'),{
     type:'bar',
-    data:{labels:d.barrios.map(b=>b.label),datasets:[{label:'Ingresos',data:d.barrios.map(b=>b.ingresos),backgroundColor:d.barrios.map((_,i)=>i===0?'#C9A84C':'rgba(201,168,76,0.25)'),borderColor:d.barrios.map((_,i)=>i===0?'#E8C96B':'#C9A84C'),borderWidth:1,borderRadius:4,borderSkipped:false}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(22,20,16,0.96)',borderColor:'rgba(201,168,76,0.3)',borderWidth:0.5,titleColor:'#C9A84C',bodyColor:'#9A9080',padding:10,callbacks:{label:c=>' '+fmtP(c.parsed.x)}}},scales:{x:{ticks:{color:'#5C5648',font:{size:10},callback:v=>fmtP(v)},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},y:{ticks:{color:'#9A9080',font:{size:11}},grid:{display:false},border:{color:'rgba(255,255,255,0.06)'}}}}
+    data:{labels:D.barrios.map(b=>b.n),datasets:[{label:'Ingresos',data:D.barrios.map(b=>b.v),backgroundColor:D.barrios.map((_,i)=>i===0?'#C9A84C':'rgba(201,168,76,0.25)'),borderColor:D.barrios.map((_,i)=>i===0?'#E8C96B':'#C9A84C'),borderWidth:1,borderRadius:4,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(22,20,16,0.96)',borderColor:'rgba(201,168,76,0.3)',borderWidth:0.5,titleColor:'#C9A84C',bodyColor:'#9A9080',padding:10,callbacks:{label:c=>' '+fM(c.parsed.x)}}},
+      scales:{
+        x:{ticks:{color:'#5C5648',font:{size:10},callback:v=>fM(v)},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},
+        y:{ticks:{color:'#9A9080',font:{size:11}},grid:{display:false},border:{color:'rgba(255,255,255,0.06)'}}
+      }
+    }
   });
 }
 
-function parseCSV(text){
-  return text.split('\n').map(line=>{
-    const cols=[]; let cur='', inQ=false;
+// ─── DATOS BASE (siempre disponibles) ───────────────────
+function datosBase(){
+  return {
+    ventas:7399500, costos:5954466, margen:1445034,
+    docenas:295.5, cobranza:'99.0%',
+    pendEnt:0, pendCob:0, montoCob:0,
+    meses:['Nov-25','Dic-25','Ene-26','Feb-26','Mar-26','Abr-26','May-26'],
+    ingresos:[1886000,483000,557500,629000,500000,1546000,1798000],
+    costos2: [1512408,405768,414990,501250,401000,1223050,1496000],
+    margen2: [373592, 77232, 142510,127750, 99000, 322950, 302000],
+    sabores:[
+      {n:'Carne',   d:167.0, p:56.5, c:'#C9A84C'},
+      {n:'Queso',   d:89.5,  p:30.3, c:'#E8C96B'},
+      {n:'Pollo',   d:16.5,  p:5.6,  c:'#E08060'},
+      {n:'Choclo',  d:11.0,  p:3.7,  c:'#4CAF7A'},
+      {n:'Espinaca',d:11.5,  p:3.9,  c:'#6B9EE8'}
+    ],
+    stock:[
+      {n:'Carne',   disp:11.5, entr:173.5, est:'ok'},
+      {n:'Queso',   disp:6.5,  entr:91.5,  est:'ok'},
+      {n:'Pollo',   disp:1.0,  entr:17.0,  est:'warn'},
+      {n:'Choclo',  disp:0,    entr:12.0,  est:'danger'},
+      {n:'Espinaca',disp:-1.0, entr:13.0,  est:'danger'}
+    ],
+    barrios:[
+      {n:'Laguna',          v:5277500},
+      {n:'Newman',          v:987000},
+      {n:'Santa Bárbara',   v:259000},
+      {n:'San Francisco',   v:184000},
+      {n:'Talar del lago',  v:150000},
+      {n:'San Isidro',      v:112000},
+      {n:'Talar de Pacheco',v:92000},
+      {n:'Pacheco Golf',    v:92000}
+    ]
+  };
+}
+
+// ─── PARSER CSV ─────────────────────────────────────────
+function parseCSV(txt){
+  return txt.split('\n').map(line=>{
+    const cols=[]; let cur='',inQ=false;
     for(let i=0;i<line.length;i++){
-      const c=line[i];
-      if(c==='"'){inQ=!inQ;}
-      else if(c===','&&!inQ){cols.push(cur.trim());cur='';}
-      else{cur+=c;}
+      const ch=line[i];
+      if(ch==='"'){inQ=!inQ;}
+      else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}
+      else{cur+=ch;}
     }
     cols.push(cur.trim());
     return cols;
   });
 }
-
-function parsePesos(s){
+function pP(s){ // parse pesos
   if(!s)return 0;
   const c=String(s).replace(/[$\s]/g,'').replace(/\./g,'').replace(',','.');
   return parseFloat(c)||0;
 }
-function parseNum(s){
+function pN(s){ // parse number, handle (n) as negative
   if(!s)return 0;
-  let str=String(s).trim();
-  // Handle accounting negatives like (1.0)
+  const str=String(s).trim();
   const neg=str.startsWith('(')&&str.endsWith(')');
-  const c=str.replace(/[^\d.,]/g,'').replace(',','.');
-  const v=parseFloat(c)||0;
+  const v=parseFloat(str.replace(/[^\d.]/g,'').replace(',','.'))||0;
   return neg?-v:v;
 }
 
-function parsearCSV(text){
-  const rows=parseCSV(text);
-  const d=JSON.parse(JSON.stringify(DATOS_BASE));
+function procesarCSV(txt){
+  const rows=parseCSV(txt);
+  const D=datosBase();
 
-  // KPIs
-  const rIng=rows.find(r=>r[0]&&r[0].trim()==='Total ingresos');
-  const rCos=rows.find(r=>r[0]&&r[0].trim()==='Total costos del negocio');
-  const rMrg=rows.find(r=>r[0]&&r[0].trim()==='Margen bruto');
-  const rDoc=rows.find(r=>r[0]&&r[0].trim()==='Docenas vendidas');
-  const rCob=rows.find(r=>r[0]&&r[0].trim()==='% cobranza');
+  const rI=rows.find(r=>r[0]&&r[0].trim()==='Total ingresos');
+  const rC=rows.find(r=>r[0]&&r[0].trim()==='Total costos del negocio');
+  const rM=rows.find(r=>r[0]&&r[0].trim()==='Margen bruto');
+  const rD=rows.find(r=>r[0]&&r[0].trim()==='Docenas vendidas');
+  const rCb=rows.find(r=>r[0]&&r[0].trim()==='% cobranza');
 
-  function lastPesos(row){ if(!row)return 0; for(let i=row.length-1;i>=1;i--){const v=parsePesos(row[i]);if(v>0)return v;} return 0; }
-  function lastNum(row){ if(!row)return 0; for(let i=row.length-1;i>=1;i--){const v=parseNum(row[i]);if(v>0)return v;} return 0; }
+  function lastP(row){ if(!row)return 0; for(let i=row.length-1;i>=1;i--){const v=pP(row[i]);if(v>0)return v;} return 0; }
+  function lastN(row){ if(!row)return 0; for(let i=row.length-1;i>=1;i--){const v=pN(row[i]);if(v>0)return v;} return 0; }
 
-  if(rIng) d.kpis.ventas=lastPesos(rIng);
-  if(rCos) d.kpis.costos=lastPesos(rCos);
-  if(rMrg) d.kpis.margen=lastPesos(rMrg);
-  if(rDoc) d.kpis.docenas=lastNum(rDoc);
-  if(rCob){
-    for(let i=rCob.length-1;i>=1;i--){
-      const raw=String(rCob[i]||'').replace('%','').trim();
-      if(raw&&raw!=='-'){const v=parseFloat(raw.replace(',','.'));if(!isNaN(v)){d.kpis.cobranza=(v>1?v:v*100).toFixed(1)+'%';break;}}
+  if(rI) D.ventas=lastP(rI);
+  if(rC) D.costos=lastP(rC);
+  if(rM) D.margen=lastP(rM);
+  if(rD) D.docenas=lastN(rD);
+  if(rCb){
+    for(let i=rCb.length-1;i>=1;i--){
+      const raw=String(rCb[i]||'').replace('%','').trim();
+      if(raw&&raw!=='-'){const v=parseFloat(raw.replace(',','.'));if(!isNaN(v)){D.cobranza=(v>1?v:v*100).toFixed(1)+'%';break;}}
     }
   }
-  if(d.kpis.docenas>0) d.kpis.precioProm=Math.round(d.kpis.ventas/d.kpis.docenas);
 
-  // Evolución
-  const hRow=rows.find(r=>r[1]&&/nov.?25/i.test(r[1]));
+  // Evolución - buscar header con Nov-25
+  const hRow=rows.find(r=>r.some(c=>/nov.?25/i.test(String(c))));
   if(hRow){
     const meses=[];
     for(let i=1;i<hRow.length;i++){
       const c=String(hRow[i]||'').trim();
-      if(/^(nov|dic|ene|feb|mar|abr|may|jun|jul|ago|sep|oct)/i.test(c)&&!c.toLowerCase().includes('total')){
-        meses.push({label:c,idx:i});
-      }
+      if(/^(nov|dic|ene|feb|mar|abr|may|jun|jul|ago|sep|oct)/i.test(c)&&!/total/i.test(c)) meses.push({l:c,i});
     }
-    const activos=meses.filter(m=>parsePesos(rIng?rIng[m.idx]:'0')>0);
-    if(activos.length>0){
-      d.evolucion.meses   =activos.map(m=>m.label);
-      d.evolucion.ingresos=activos.map(m=>parsePesos(rIng?rIng[m.idx]:0));
-      d.evolucion.costos  =activos.map(m=>parsePesos(rCos?rCos[m.idx]:0));
-      d.evolucion.margen  =activos.map(m=>parsePesos(rMrg?rMrg[m.idx]:0));
+    const act=meses.filter(m=>pP(rI?rI[m.i]:'0')>0);
+    if(act.length>0){
+      D.meses   =act.map(m=>m.l);
+      D.ingresos=act.map(m=>pP(rI?rI[m.i]:0));
+      D.costos2 =act.map(m=>pP(rC?rC[m.i]:0));
+      D.margen2 =act.map(m=>pP(rM?rM[m.i]:0));
     }
   }
 
   // Sabores
-  const mixIdx=rows.findIndex(r=>r[0]&&r[0].includes('MIX DE SABORES'));
-  if(mixIdx>=0){
-    const sf=[];
-    const cols=['#C9A84C','#E8C96B','#E08060','#4CAF7A','#6B9EE8'];
-    let ci=0;
-    for(let i=mixIdx+1;i<Math.min(mixIdx+10,rows.length);i++){
-      const r=rows[i];
-      const nom=String(r[0]||'').trim();
-      if(!nom||nom==='Sabor'||nom==='TOTAL'||nom==='')continue;
-      const doc=parseNum(r[1]);
-      const pct=parseFloat(String(r[2]||'').replace('%','').replace(',','.'))||0;
-      if(doc>0) sf.push({label:nom,docenas:doc,pct:parseFloat(pct.toFixed(1)),color:cols[ci++]||'#888'});
+  const mix=rows.findIndex(r=>r[0]&&r[0].includes('MIX DE SABORES'));
+  if(mix>=0){
+    const sf=[]; const cols=['#C9A84C','#E8C96B','#E08060','#4CAF7A','#6B9EE8']; let ci=0;
+    for(let i=mix+1;i<Math.min(mix+10,rows.length);i++){
+      const r=rows[i]; const nom=String(r[0]||'').trim();
+      if(!nom||nom==='Sabor'||nom==='TOTAL') continue;
+      const doc=pN(r[1]); const pct=parseFloat(String(r[2]||'').replace('%','').replace(',','.'))||0;
+      if(doc>0) sf.push({n:nom,d:doc,p:parseFloat(pct.toFixed(1)),c:cols[ci++]||'#888'});
     }
-    if(sf.length>0) d.sabores=sf;
+    if(sf.length>0) D.sabores=sf;
   }
 
-  // Stock
-  const stIdx=rows.findIndex(r=>r.some(c=>String(c).includes('CONTROL DE STOCK')));
-  if(stIdx>=0){
+  // Stock - en la misma fila que VENTAS POR BARRIO, columnas H-M (índices 7-12)
+  const stRow=rows.findIndex(r=>r.some(c=>String(c).includes('CONTROL DE STOCK')));
+  if(stRow>=0){
     const st=[];
-    for(let i=stIdx+1;i<Math.min(stIdx+10,rows.length);i++){
-      const r=rows[i];
-      const prod=String(r[7]||'').trim();
-      if(!prod||prod==='Producto'||prod==='TOTAL'||prod==='')continue;
-      const disp=parseNum(r[9]);
-      const entr=parseNum(r[11]);
-      const est=String(r[12]||'').trim();
+    for(let i=stRow+1;i<Math.min(stRow+10,rows.length);i++){
+      const r=rows[i]; const prod=String(r[7]||'').trim();
+      if(!prod||prod==='Producto'||prod==='TOTAL') continue;
+      const disp=pN(r[9]); const entr=pN(r[11]); const est=String(r[12]||'').trim();
       let estado='ok';
-      if(est.includes('\u26d4')||est.toLowerCase().includes('sin')) estado='danger';
-      else if(est.includes('\u26a0')||est.toLowerCase().includes('bajo')) estado='warn';
-      if(parseNum(r[8])>0||disp!==0||entr>0) st.push({s:prod,disponible:disp,entregado:entr,estado});
+      if(est.includes('⛔')||est.toLowerCase().includes('sin')) estado='danger';
+      else if(est.includes('⚠')||est.toLowerCase().includes('bajo')) estado='warn';
+      if(pN(r[8])>0||entr>0) st.push({n:prod,disp,entr,est:estado});
     }
-    if(st.length>0) d.stock=st;
+    if(st.length>0) D.stock=st;
   }
 
-  // Barrios
-  const bIdx=rows.findIndex(r=>r.some(c=>String(c).trim()==='VENTAS POR BARRIO'));
-  if(bIdx>=0){
+  // Barrios - buscar fila header con "Barrio"
+  const bHdr=rows.findIndex(r=>r[0]&&r[0].trim()==='Barrio');
+  if(bHdr>=0){
     const br=[];
-    for(let i=bIdx+1;i<Math.min(bIdx+20,rows.length);i++){
-      const r=rows[i];
-      const nom=String(r[0]||'').trim();
-      if(!nom||nom==='Barrio'||nom==='TOTAL'||nom===''||nom.includes('Muestra'))continue;
-      const ing=parsePesos(r[3]);
-      if(nom==='Barrio'||nom==='Concepto') continue;
-      if(ing>0) br.push({label:nom,ingresos:ing,pedidos:parseNum(r[1]),docenas:parseNum(r[2])});
+    for(let i=bHdr+1;i<Math.min(bHdr+20,rows.length);i++){
+      const r=rows[i]; const nom=String(r[0]||'').trim();
+      if(!nom||nom==='TOTAL'||nom.includes('Muestra')) continue;
+      const v=pP(r[3]);
+      if(v>0) br.push({n:nom,v});
     }
-    if(br.length>0){
-      br.sort((a,b)=>b.ingresos-a.ingresos);
-      d.barrios=br.slice(0,8);
-    }
+    if(br.length>0){ br.sort((a,b)=>b.v-a.v); D.barrios=br.slice(0,8); }
   }
 
   // Alertas
-  const aIdx=rows.findIndex(r=>r[0]&&r[0].includes('ALERTAS'));
-  if(aIdx>=0){
-    for(let i=aIdx+1;i<Math.min(aIdx+8,rows.length);i++){
-      const r=rows[i];
-      const con=String(r[0]||'').trim().toLowerCase();
-      const val=String(r[4]||r[3]||r[1]||'').trim();
-      if(con.includes('entrega')) d.alertas.pendientesEntrega=val==='-'?0:(parseNum(val)||0);
-      if(con.includes('cobro')&&!con.includes('monto')) d.alertas.pendientesCobro=val==='-'?0:(parseNum(val)||0);
-      if(con.includes('monto')) d.alertas.montoCobro=val==='-'?0:(parsePesos(val)||0);
+  const aHdr=rows.findIndex(r=>r[0]&&r[0].includes('ALERTAS'));
+  if(aHdr>=0){
+    for(let i=aHdr+1;i<Math.min(aHdr+8,rows.length);i++){
+      const r=rows[i]; const con=String(r[0]||'').trim().toLowerCase();
+      // valor está en col 4 (índice 4) según el CSV
+      const val=String(r[4]||r[3]||'').trim();
+      if(con.includes('entrega'))                     D.pendEnt=val==='-'?0:(pN(val)||0);
+      if(con.includes('cobro')&&!con.includes('monto')) D.pendCob=val==='-'?0:(pN(val)||0);
+      if(con.includes('monto'))                       D.montoCob=val==='-'?0:(pP(val)||0);
     }
   }
 
-  return d;
+  return D;
 }
 
+// ─── SINCRONIZAR ────────────────────────────────────────
 async function sincronizar(){
-  const dot=document.getElementById('status-dot');
-  const txt=document.getElementById('status-text');
-  const icon=document.getElementById('sync-icon');
-  dot.className='status-dot loading';
-  txt.textContent='Sincronizando...';
-  icon.style.animation='spin 1s linear infinite';
-
+  const dot=document.getElementById('sdot');
+  const txt=document.getElementById('stxt');
+  const ico=document.getElementById('sico');
+  dot.className='status-dot spin'; txt.textContent='Sincronizando...';
+  ico.style.animation='spin 1s linear infinite';
   try{
-    const url=SHEETS_CSV_URL+(SHEETS_CSV_URL.includes('?')?'&':'?')+'_t='+Date.now();
+    const url=CSV_URL+'&_t='+Date.now();
     const res=await fetch(url,{cache:'no-store'});
     if(!res.ok) throw new Error('HTTP '+res.status);
-    const text=await res.text();
-    const datos=parsearCSV(text);
-    renderAll(datos);
+    const raw=await res.text();
+    const D=procesarCSV(raw);
+    render(D);
     const now=new Date().toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    document.getElementById('last-updated').textContent='Actualizado: '+now;
-    dot.className='status-dot';
-    txt.textContent='Datos sincronizados';
-  } catch(err){
-    console.error(err);
-    dot.className='status-dot error';
-    txt.textContent='Sin conexión — mostrando datos guardados';
+    document.getElementById('last-updated').textContent='Última actualización: '+now;
+    dot.className='status-dot'; txt.textContent='Datos sincronizados';
+  }catch(e){
+    console.error(e);
+    dot.className='status-dot error'; txt.textContent='Sin conexión — datos guardados';
   }
-  icon.style.animation='';
+  ico.style.animation='';
 }
 
-// Arrancar con datos reales hardcodeados siempre
+// ─── INICIO ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',()=>{
-  renderAll(DATOS_BASE);
-  sincronizar();
+  render(datosBase());  // mostrar datos reales inmediatamente
+  sincronizar();         // luego intentar actualizar desde Sheets
 });
 </script>
 </body>
