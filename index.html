@@ -6,142 +6,111 @@
 <title>Panel de Control · Las Gauchas by Cai</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --gold: #C9A84C;
-    --gold-light: #E8C96B;
-    --gold-dim: #7A6030;
-    --bg-base: #0E0D0B;
-    --bg-card: #161410;
-    --bg-card2: #1C1A16;
-    --bg-card3: #221F18;
-    --border: rgba(201,168,76,0.18);
-    --border-soft: rgba(255,255,255,0.06);
-    --text-primary: #F0EAD8;
-    --text-secondary: #9A9080;
-    --text-muted: #5C5648;
-    --success: #4CAF7A;
-    --warning: #E8A53A;
-    --danger: #E05252;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background-color: var(--bg-base);
-    color: var(--text-primary);
-    min-height: 100vh;
-    background-image:
-      radial-gradient(ellipse 80% 40% at 50% -10%, rgba(201,168,76,0.07) 0%, transparent 60%),
-      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px),
-      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px);
-  }
-  h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
-  .card {
-    background: var(--bg-card);
-    border: 0.5px solid var(--border);
-    border-radius: 12px;
-    position: relative;
-    overflow: hidden;
-  }
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
-  }
-  .kpi-value { font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; color: var(--gold-light); letter-spacing: -0.02em; }
-  .kpi-label { font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); }
-  .kpi-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
-  .section-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 600; color: var(--text-primary); }
-  .section-sub { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
-  .gold-line { width: 28px; height: 2px; background: var(--gold); border-radius: 1px; margin-bottom: 10px; }
-  .badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: 0.68rem; font-weight: 500; padding: 3px 8px;
-    border-radius: 20px; text-transform: uppercase; letter-spacing: 0.07em;
-  }
-  .badge-ok { background: rgba(76,175,122,0.12); color: var(--success); border: 0.5px solid rgba(76,175,122,0.3); }
-  .badge-warn { background: rgba(232,165,58,0.12); color: var(--warning); border: 0.5px solid rgba(232,165,58,0.3); }
-  .badge-danger { background: rgba(224,82,82,0.12); color: var(--danger); border: 0.5px solid rgba(224,82,82,0.3); }
-  .sync-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(201,168,76,0.1); border: 0.5px solid rgba(201,168,76,0.4);
-    color: var(--gold); font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem; font-weight: 500; padding: 7px 16px;
-    border-radius: 6px; cursor: pointer; transition: all 0.2s;
-    text-transform: uppercase; letter-spacing: 0.08em;
-  }
-  .sync-btn:hover { background: rgba(201,168,76,0.2); border-color: var(--gold); }
-  .sync-btn:active { transform: scale(0.97); }
-  .sync-btn.loading { opacity: 0.6; pointer-events: none; }
-  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px rgba(76,175,122,0.6); }
-  .status-dot.error { background: var(--danger); box-shadow: 0 0 6px rgba(224,82,82,0.6); }
-  .status-dot.loading { background: var(--warning); animation: pulse 1s infinite; box-shadow: 0 0 6px rgba(232,165,58,0.6); }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  .divider { border: none; border-top: 0.5px solid var(--border-soft); }
-  .alert-card {
-    background: var(--bg-card2);
-    border: 0.5px solid var(--border-soft);
-    border-radius: 8px; padding: 14px 16px;
-    position: relative;
-  }
-  .bar-container { background: rgba(255,255,255,0.05); border-radius: 3px; height: 6px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
-  .shimmer {
-    background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card2) 50%, var(--bg-card) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-  @keyframes shimmer { 0%{background-position:200%} 100%{background-position:-200%} }
-  canvas { display: block; }
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: var(--bg-base); }
-  ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+:root{--gold:#C9A84C;--gold-light:#E8C96B;--gold-dim:#7A6030;--bg-base:#0E0D0B;--bg-card:#161410;--bg-card2:#1C1A16;--border:rgba(201,168,76,0.18);--border-soft:rgba(255,255,255,0.06);--text-primary:#F0EAD8;--text-secondary:#9A9080;--text-muted:#5C5648;--success:#4CAF7A;--warning:#E8A53A;--danger:#E05252;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background-color:var(--bg-base);color:var(--text-primary);min-height:100vh;background-image:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(201,168,76,0.07) 0%,transparent 60%),repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,0.015) 39px,rgba(255,255,255,0.015) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,0.015) 39px,rgba(255,255,255,0.015) 40px);}
+h1,h2,h3{font-family:'Playfair Display',serif;}
+.card{background:var(--bg-card);border:0.5px solid var(--border);border-radius:12px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);}
+.kpi-value{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:var(--gold-light);letter-spacing:-0.02em;}
+.kpi-label{font-size:0.72rem;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-secondary);}
+.kpi-sub{font-size:0.78rem;color:var(--text-muted);margin-top:2px;}
+.section-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--text-primary);}
+.section-sub{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;}
+.gold-line{width:28px;height:2px;background:var(--gold);border-radius:1px;margin-bottom:10px;}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;font-weight:500;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.07em;}
+.badge-ok{background:rgba(76,175,122,0.12);color:var(--success);border:0.5px solid rgba(76,175,122,0.3);}
+.badge-warn{background:rgba(232,165,58,0.12);color:var(--warning);border:0.5px solid rgba(232,165,58,0.3);}
+.badge-danger{background:rgba(224,82,82,0.12);color:var(--danger);border:0.5px solid rgba(224,82,82,0.3);}
+.sync-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,0.1);border:0.5px solid rgba(201,168,76,0.4);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:500;padding:7px 16px;border-radius:6px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.08em;}
+.sync-btn:hover{background:rgba(201,168,76,0.2);border-color:var(--gold);}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 6px rgba(76,175,122,0.6);}
+.status-dot.error{background:var(--danger);box-shadow:0 0 6px rgba(224,82,82,0.6);}
+.status-dot.loading{background:var(--warning);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.alert-card{background:var(--bg-card2);border:0.5px solid var(--border-soft);border-radius:8px;padding:14px 16px;}
+.bar-container{background:rgba(255,255,255,0.05);border-radius:3px;height:6px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;}
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════
-     CONFIGURACIÓN — REEMPLAZÁ LA URL AQUÍ
-═══════════════════════════════════════════════ -->
 <script>
 const SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSL5CvjsEXGF4MNnyn44zk8G5xJ8FDmbE2LbDKV8wabnY_G3neI3kCjfGZFBl3mWWKkBuWFTL_tUGjB/pub?gid=1761852221&single=true&output=csv";
-// Ejemplo de URL para exportar una pestaña como CSV desde Google Sheets:
-// https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/export?format=csv&gid=SHEET_GID
-// 1. Abrí tu Google Sheet
-// 2. Andá a la pestaña "Tablero Control"
-// 3. Archivo → Compartir → Publicar en la web → Seleccioná la hoja → Valores separados por comas (.csv) → Publicar
-// 4. Copiá la URL generada y pegala arriba como valor de SHEETS_CSV_URL
-</script>
-<!-- ═══════════════════════════════════════════ -->
 
-<div style="max-width: 1400px; margin: 0 auto; padding: 24px 20px;">
+// ═══════════════════════════════════════════════
+// DATOS REALES HARDCODEADOS (siempre disponibles)
+// Se actualizan desde Google Sheets al sincronizar
+// ═══════════════════════════════════════════════
+const DATOS_BASE = {
+  kpis: {
+    ventas: 7399500, costos: 5954466, margen: 1445034,
+    docenas: 295.5, cobranza: "99.0%", precioProm: 25043
+  },
+  evolucion: {
+    meses: ["Nov-25","Dic-25","Ene-26","Feb-26","Mar-26","Abr-26","May-26"],
+    ingresos: [1886000, 483000, 557500, 629000, 500000, 1546000, 1798000],
+    costos:   [1512408, 405768, 414990, 501250, 401000, 1223050, 1496000],
+    margen:   [373592,   77232, 142510, 127750,  99000,  322950,  302000]
+  },
+  sabores: [
+    {label:"Carne",    docenas:167.0, pct:56.5, color:"#C9A84C"},
+    {label:"Queso",    docenas:89.5,  pct:30.3, color:"#E8C96B"},
+    {label:"Pollo",    docenas:16.5,  pct:5.6,  color:"#E08060"},
+    {label:"Choclo",   docenas:11.0,  pct:3.7,  color:"#4CAF7A"},
+    {label:"Espinaca", docenas:11.5,  pct:3.9,  color:"#6B9EE8"}
+  ],
+  stock: [
+    {s:"Carne",    disponible:11.5,  entregado:173.5, estado:"ok"},
+    {s:"Queso",    disponible:6.5,   entregado:91.5,  estado:"ok"},
+    {s:"Pollo",    disponible:1.0,   entregado:17.0,  estado:"warn"},
+    {s:"Choclo",   disponible:0,     entregado:12.0,  estado:"danger"},
+    {s:"Espinaca", disponible:-1.0,  entregado:13.0,  estado:"danger"}
+  ],
+  barrios: [
+    {label:"Laguna",            ingresos:5277500, pedidos:62, docenas:208.5},
+    {label:"Newman",            ingresos:987000,  pedidos:11, docenas:41.0},
+    {label:"Santa Bárbara",     ingresos:259000,  pedidos:3,  docenas:11.0},
+    {label:"San Francisco",     ingresos:184000,  pedidos:1,  docenas:8.0},
+    {label:"Talar del lago",    ingresos:150000,  pedidos:2,  docenas:6.0},
+    {label:"San Isidro",        ingresos:112000,  pedidos:1,  docenas:4.0},
+    {label:"Talar de Pacheco",  ingresos:92000,   pedidos:1,  docenas:4.0},
+    {label:"Pacheco Golf",      ingresos:92000,   pedidos:1,  docenas:4.0}
+  ],
+  alertas: {
+    pendientesEntrega: 0,
+    pendientesCobro: 0,
+    montoCobro: 0
+  }
+};
+</script>
+
+<div style="max-width:1400px;margin:0 auto;padding:24px 20px;">
 
   <!-- HEADER -->
-  <header style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px;">
     <div>
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <path d="M4 20 C4 20, 8 8, 14 6 C20 8, 24 20, 24 20 Z" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linejoin="round"/>
           <path d="M7 18 C9 14, 11 11, 14 10 C17 11, 19 14, 21 18" stroke="#C9A84C" stroke-width="1" fill="none" stroke-dasharray="2 2"/>
           <circle cx="14" cy="6" r="1.5" fill="#E8C96B"/>
         </svg>
-        <h1 style="font-size: 1.55rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em;">Las Gauchas <span style="font-size:1rem; font-weight:300; color:var(--gold); font-family:'DM Sans',sans-serif; letter-spacing:0.05em;">by Cai</span></h1>
-        <span style="font-size: 0.7rem; color: var(--gold); border: 0.5px solid var(--gold-dim); padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.1em;">Panel de Control</span>
+        <h1 style="font-size:1.55rem;font-weight:700;color:var(--text-primary);letter-spacing:-0.01em;">Las Gauchas <span style="font-size:1rem;font-weight:300;color:var(--gold);font-family:'DM Sans',sans-serif;letter-spacing:0.05em;">by Cai</span></h1>
+        <span style="font-size:0.7rem;color:var(--gold);border:0.5px solid var(--gold-dim);padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.1em;">Panel de Control</span>
       </div>
-      <p style="font-size: 0.75rem; color: var(--text-muted);" id="last-updated">Datos no cargados</p>
+      <p style="font-size:0.75rem;color:var(--text-muted);" id="last-updated">Datos al 28/05/2026</p>
     </div>
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <div style="display: flex; align-items: center; gap: 6px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="display:flex;align-items:center;gap:6px;">
         <div class="status-dot" id="status-dot"></div>
-        <span style="font-size: 0.72rem; color: var(--text-muted);" id="status-text">Cargando...</span>
+        <span style="font-size:0.72rem;color:var(--text-muted);" id="status-text">Datos cargados</span>
       </div>
-      <button class="sync-btn" id="sync-btn" onclick="loadData()">
-        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <button class="sync-btn" id="sync-btn" onclick="sincronizar()">
+        <svg id="sync-icon" width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
           <path d="M12 7A5 5 0 1 1 7 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           <path d="M12 2v3h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -150,929 +119,364 @@ const SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSL5Cvjs
     </div>
   </header>
 
-  <!-- KPI ROW -->
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px;">
-    <div class="card" style="padding: 18px 20px;">
+  <!-- KPIs -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="card" style="padding:18px 20px;">
       <div class="kpi-label">Ventas Totales</div>
-      <div class="kpi-value" id="kpi-ventas">—</div>
+      <div class="kpi-value" id="kpi-ventas">$7.4M</div>
       <div class="kpi-sub">Ingresos acumulados</div>
     </div>
-    <div class="card" style="padding: 18px 20px;">
+    <div class="card" style="padding:18px 20px;">
       <div class="kpi-label">Costos Totales</div>
-      <div class="kpi-value" id="kpi-costos" style="color: #E08060;">—</div>
+      <div class="kpi-value" id="kpi-costos" style="color:#E08060;">$5.95M</div>
       <div class="kpi-sub">Costos del negocio</div>
     </div>
-    <div class="card" style="padding: 18px 20px;">
+    <div class="card" style="padding:18px 20px;">
       <div class="kpi-label">Margen Bruto</div>
-      <div class="kpi-value" id="kpi-margen" style="color: var(--success);">—</div>
-      <div class="kpi-sub" id="kpi-margen-pct">% del ingreso</div>
+      <div class="kpi-value" id="kpi-margen" style="color:var(--success);">$1.45M</div>
+      <div class="kpi-sub" id="kpi-margen-pct">19.5% del ingreso</div>
     </div>
-    <div class="card" style="padding: 18px 20px;">
+    <div class="card" style="padding:18px 20px;">
       <div class="kpi-label">Docenas Vendidas</div>
-      <div class="kpi-value" id="kpi-docenas">—</div>
+      <div class="kpi-value" id="kpi-docenas">295.5 doz.</div>
       <div class="kpi-sub">Volumen total</div>
     </div>
-    <div class="card" style="padding: 18px 20px;">
+    <div class="card" style="padding:18px 20px;">
       <div class="kpi-label">Ratio de Cobranza</div>
-      <div class="kpi-value" id="kpi-cobranza" style="color: var(--success);">—</div>
+      <div class="kpi-value" id="kpi-cobranza" style="color:var(--success);">99.0%</div>
       <div class="kpi-sub">Cobrado vs facturado</div>
     </div>
   </div>
 
   <!-- ROW 2: Evolución + Dona -->
-  <div style="display: grid; grid-template-columns: 1fr 340px; gap: 16px; margin-bottom: 16px;">
-
-    <!-- Evolución Mensual -->
-    <div class="card" style="padding: 22px 24px;">
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:16px;">
+    <div class="card" style="padding:22px 24px;">
       <div class="gold-line"></div>
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:8px;">
         <div>
           <div class="section-title">Evolución Mensual</div>
-          <div class="section-sub" style="margin-top: 3px;">Ingresos vs Costos del negocio</div>
+          <div class="section-sub" style="margin-top:3px;">Ingresos vs Costos del negocio</div>
         </div>
-        <div style="display: flex; gap: 14px; font-size: 0.72rem;">
-          <span style="display: flex; align-items: center; gap: 5px; color: var(--text-secondary);"><span style="width: 20px; height: 2px; background: var(--gold); display: inline-block; border-radius: 1px;"></span>Ingresos</span>
-          <span style="display: flex; align-items: center; gap: 5px; color: var(--text-secondary);"><span style="width: 20px; height: 2px; background: #E08060; display: inline-block; border-radius: 1px; border-top: 2px dashed #E08060; height: 0;"></span>Costos</span>
-          <span style="display: flex; align-items: center; gap: 5px; color: var(--text-secondary);"><span style="width: 10px; height: 10px; background: rgba(76,175,122,0.3); border-radius: 2px; display: inline-block;"></span>Margen</span>
+        <div style="display:flex;gap:14px;font-size:0.72rem;">
+          <span style="display:flex;align-items:center;gap:5px;color:var(--text-secondary);"><span style="width:20px;height:2px;background:var(--gold);display:inline-block;border-radius:1px;"></span>Ingresos</span>
+          <span style="display:flex;align-items:center;gap:5px;color:var(--text-secondary);"><span style="width:20px;height:0;display:inline-block;border-top:2px dashed #E08060;"></span>Costos</span>
+          <span style="display:flex;align-items:center;gap:5px;color:var(--text-secondary);"><span style="width:10px;height:10px;background:rgba(76,175,122,0.3);border-radius:2px;display:inline-block;"></span>Margen</span>
         </div>
       </div>
-      <div style="position: relative; height: 240px;">
-        <canvas id="chartEvolucion" role="img" aria-label="Gráfico de área con evolución mensual de ingresos y costos">Sin datos disponibles.</canvas>
+      <div style="position:relative;height:240px;">
+        <canvas id="chartEvolucion" role="img" aria-label="Evolución mensual de ingresos y costos">Sin datos.</canvas>
       </div>
     </div>
-
-    <!-- Dona Sabores -->
-    <div class="card" style="padding: 22px 24px;">
+    <div class="card" style="padding:22px 24px;">
       <div class="gold-line"></div>
-      <div class="section-title" style="margin-bottom: 3px;">Mix de Sabores</div>
-      <div class="section-sub" style="margin-bottom: 16px;">% de docenas vendidas</div>
-      <div style="position: relative; height: 180px;">
-        <canvas id="chartSabores" role="img" aria-label="Gráfico de dona mostrando distribución de ventas por sabor">Sin datos disponibles.</canvas>
+      <div class="section-title" style="margin-bottom:3px;">Mix de Sabores</div>
+      <div class="section-sub" style="margin-bottom:16px;">% de docenas vendidas</div>
+      <div style="position:relative;height:180px;">
+        <canvas id="chartSabores" role="img" aria-label="Mix de sabores vendidos">Sin datos.</canvas>
       </div>
-      <div id="legend-sabores" style="margin-top: 14px; display: flex; flex-direction: column; gap: 6px; font-size: 0.72rem;"></div>
+      <div id="legend-sabores" style="margin-top:14px;display:flex;flex-direction:column;gap:6px;font-size:0.72rem;"></div>
     </div>
   </div>
 
   <!-- ROW 3: Stock + Barrios -->
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-
-    <!-- Stock por Variedad -->
-    <div class="card" style="padding: 22px 24px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div class="card" style="padding:22px 24px;">
       <div class="gold-line"></div>
-      <div class="section-title" style="margin-bottom: 3px;">Stock por Variedad</div>
-      <div class="section-sub" style="margin-bottom: 16px;">Disponible vs. entregado</div>
-      <div id="stock-table" style="display: flex; flex-direction: column; gap: 12px;">
-        <div style="color: var(--text-muted); font-size: 0.8rem;">Cargando datos...</div>
-      </div>
+      <div class="section-title" style="margin-bottom:3px;">Stock por Variedad</div>
+      <div class="section-sub" style="margin-bottom:16px;">Disponible vs. entregado</div>
+      <div id="stock-table" style="display:flex;flex-direction:column;gap:12px;"></div>
     </div>
-
-    <!-- Top Barrios -->
-    <div class="card" style="padding: 22px 24px;">
+    <div class="card" style="padding:22px 24px;">
       <div class="gold-line"></div>
-      <div class="section-title" style="margin-bottom: 3px;">Facturación por Zona</div>
-      <div class="section-sub" style="margin-bottom: 16px;">Top barrios por ingresos</div>
-      <div style="position: relative;" id="chart-barrios-wrap">
-        <canvas id="chartBarrios" role="img" aria-label="Gráfico de barras con facturación por barrio">Sin datos disponibles.</canvas>
+      <div class="section-title" style="margin-bottom:3px;">Facturación por Zona</div>
+      <div class="section-sub" style="margin-bottom:16px;">Top barrios por ingresos</div>
+      <div style="position:relative;height:320px;" id="chart-barrios-wrap">
+        <canvas id="chartBarrios" role="img" aria-label="Facturación por barrio">Sin datos.</canvas>
       </div>
     </div>
   </div>
 
   <!-- ROW 4: Alertas -->
-  <div class="card" style="padding: 22px 24px; margin-bottom: 16px;">
+  <div class="card" style="padding:22px 24px;margin-bottom:16px;">
     <div class="gold-line"></div>
-    <div class="section-title" style="margin-bottom: 14px;">Alertas de Gestión</div>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+    <div class="section-title" style="margin-bottom:14px;">Alertas de Gestión</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
       <div class="alert-card">
-        <div style="display: flex; align-items: center; gap: 7px; margin-bottom: 8px;">
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><rect x="1" y="3" width="13" height="10" rx="1.5" stroke="var(--warning)" stroke-width="1.2"/><path d="M5 3V2a2.5 2.5 0 0 1 5 0v1" stroke="var(--warning)" stroke-width="1.2"/></svg>
-          <span style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--warning);">Pedidos Pendientes de Entrega</span>
-        </div>
-        <div style="font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--text-primary);" id="alert-pendientes-entrega">—</div>
-        <div style="font-size: 0.72rem; color: var(--text-muted);">pedidos en curso</div>
+        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--warning);margin-bottom:8px;">Pedidos Pendientes de Entrega</div>
+        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;" id="alert-pendientes-entrega">0</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);">pedidos en curso</div>
       </div>
       <div class="alert-card">
-        <div style="display: flex; align-items: center; gap: 7px; margin-bottom: 8px;">
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="6" stroke="var(--gold)" stroke-width="1.2"/><path d="M7.5 4.5v3l2 1.5" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/></svg>
-          <span style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--gold);">Pedidos Pendientes de Cobro</span>
-        </div>
-        <div style="font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--text-primary);" id="alert-pendientes-cobro">—</div>
-        <div style="font-size: 0.72rem; color: var(--text-muted);">pedidos sin cobrar</div>
+        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--gold);margin-bottom:8px;">Pedidos Pendientes de Cobro</div>
+        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;" id="alert-pendientes-cobro">0</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);">pedidos sin cobrar</div>
       </div>
       <div class="alert-card">
-        <div style="display: flex; align-items: center; gap: 7px; margin-bottom: 8px;">
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M1 4h13M3 4V2.5A.5.5 0 0 1 3.5 2h8a.5.5 0 0 1 .5.5V4M2 4v8.5a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V4" stroke="var(--danger)" stroke-width="1.2"/></svg>
-          <span style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--danger);">Monto Pendiente de Cobrar</span>
-        </div>
-        <div style="font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--text-primary);" id="alert-monto-cobro">—</div>
-        <div style="font-size: 0.72rem; color: var(--text-muted);">pesos sin cobrar</div>
+        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--danger);margin-bottom:8px;">Monto Pendiente de Cobrar</div>
+        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;" id="alert-monto-cobro">$0</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);">pesos sin cobrar</div>
       </div>
       <div class="alert-card">
-        <div style="display: flex; align-items: center; gap: 7px; margin-bottom: 8px;">
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1L9.5 5.5H14L10.5 8.5L12 13L7.5 10L3 13L4.5 8.5L1 5.5H5.5L7.5 1Z" stroke="var(--success)" stroke-width="1.2" stroke-linejoin="round"/></svg>
-          <span style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--success);">Precio Promedio / Docena</span>
-        </div>
-        <div style="font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--text-primary);" id="alert-precio-promedio">—</div>
-        <div style="font-size: 0.72rem; color: var(--text-muted);">ingreso por docena</div>
+        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--success);margin-bottom:8px;">Precio Promedio / Docena</div>
+        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;" id="alert-precio-promedio">$25K</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);">ingreso por docena</div>
       </div>
     </div>
   </div>
 
-  <!-- FOOTER -->
-  <footer style="text-align: center; padding: 12px 0; color: var(--text-muted); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;">
+  <footer style="text-align:center;padding:12px 0;color:var(--text-muted);font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;">
     Panel de Control · Las Gauchas by Cai · Datos en tiempo real desde Google Sheets
   </footer>
-
 </div>
 
 <script>
-let chartEvolucion = null;
-let chartSabores = null;
-let chartBarrios = null;
+let chartEvolucion=null, chartSabores=null, chartBarrios=null;
 
-function parsePesos(str) {
-  if (!str) return 0;
-  const clean = String(str).replace(/[$\s]/g, '').replace(/\./g, '').replace(',', '.');
-  return parseFloat(clean) || 0;
+function fmtP(n){
+  if(!n||isNaN(n))return'$0';
+  if(n>=1000000)return'$'+(n/1000000).toFixed(2).replace(/\.?0+$/,'')+'M';
+  if(n>=1000)return'$'+Math.round(n/1000)+'K';
+  return'$'+Math.round(n).toLocaleString('es-AR');
 }
 
-function parseNum(str) {
-  if (!str) return 0;
-  const clean = String(str).replace(/[^\d.,\-]/g, '').replace(',', '.');
-  return parseFloat(clean) || 0;
+function renderAll(d){
+  // KPIs
+  document.getElementById('kpi-ventas').textContent   = fmtP(d.kpis.ventas);
+  document.getElementById('kpi-costos').textContent   = fmtP(d.kpis.costos);
+  document.getElementById('kpi-margen').textContent   = fmtP(d.kpis.margen);
+  document.getElementById('kpi-docenas').textContent  = d.kpis.docenas.toFixed(1)+' doz.';
+  document.getElementById('kpi-cobranza').textContent = d.kpis.cobranza;
+  document.getElementById('kpi-margen-pct').textContent = ((d.kpis.margen/d.kpis.ventas)*100).toFixed(1)+'% del ingreso';
+  document.getElementById('alert-precio-promedio').textContent = fmtP(d.kpis.precioProm);
+  document.getElementById('alert-pendientes-entrega').textContent = d.alertas.pendientesEntrega;
+  document.getElementById('alert-pendientes-cobro').textContent   = d.alertas.pendientesCobro;
+  document.getElementById('alert-monto-cobro').textContent        = d.alertas.montoCobro > 0 ? fmtP(d.alertas.montoCobro) : '$0';
+
+  // Evolución
+  if(chartEvolucion) chartEvolucion.destroy();
+  chartEvolucion = new Chart(document.getElementById('chartEvolucion').getContext('2d'),{
+    type:'line',
+    data:{labels:d.evolucion.meses,datasets:[
+      {label:'Ingresos',data:d.evolucion.ingresos,borderColor:'#C9A84C',backgroundColor:'rgba(201,168,76,0.08)',fill:true,tension:0.4,borderWidth:2,pointRadius:4,pointBackgroundColor:'#C9A84C',pointBorderColor:'#0E0D0B',pointBorderWidth:1.5},
+      {label:'Costos',  data:d.evolucion.costos,  borderColor:'#E08060',backgroundColor:'rgba(224,128,96,0.05)',fill:true,tension:0.4,borderWidth:2,borderDash:[5,4],pointRadius:3,pointBackgroundColor:'#E08060',pointBorderColor:'#0E0D0B',pointBorderWidth:1.5},
+      {label:'Margen',  data:d.evolucion.margen,  borderColor:'#4CAF7A',backgroundColor:'rgba(76,175,122,0.12)',fill:true,tension:0.4,borderWidth:1.5,pointRadius:3,pointBackgroundColor:'#4CAF7A'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(22,20,16,0.96)',borderColor:'rgba(201,168,76,0.3)',borderWidth:0.5,titleColor:'#C9A84C',bodyColor:'#9A9080',padding:10,callbacks:{label:c=>' '+c.dataset.label+': '+fmtP(c.parsed.y)}}},
+      scales:{x:{ticks:{color:'#5C5648',font:{size:11},autoSkip:false,maxRotation:0},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},y:{ticks:{color:'#5C5648',font:{size:11},callback:v=>fmtP(v)},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}}}}
+  });
+
+  // Sabores
+  if(chartSabores) chartSabores.destroy();
+  chartSabores = new Chart(document.getElementById('chartSabores').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:d.sabores.map(s=>s.label),datasets:[{data:d.sabores.map(s=>s.docenas),backgroundColor:d.sabores.map(s=>s.color),borderColor:'#0E0D0B',borderWidth:2,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(22,20,16,0.96)',borderColor:'rgba(201,168,76,0.3)',borderWidth:0.5,titleColor:'#C9A84C',bodyColor:'#9A9080',padding:10,callbacks:{label:c=>' '+c.label+': '+c.parsed.toFixed(1)+' doz. ('+d.sabores[c.dataIndex].pct+'%)'}}}}
+  });
+  const leg=document.getElementById('legend-sabores');
+  leg.innerHTML='';
+  d.sabores.forEach(s=>{
+    const el=document.createElement('div');
+    el.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;';
+    el.innerHTML='<span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:'+s.color+';flex-shrink:0;"></span><span style="color:var(--text-secondary);font-size:0.72rem;">'+s.label+'</span></span><span style="font-size:0.72rem;color:var(--text-primary);font-weight:500;">'+s.pct+'%</span>';
+    leg.appendChild(el);
+  });
+
+  // Stock
+  const sc=document.getElementById('stock-table');
+  sc.innerHTML='';
+  const maxV=Math.max(...d.stock.map(s=>Math.max(Math.abs(s.disponible),s.entregado)));
+  d.stock.forEach(s=>{
+    let bc='badge-ok',bl='OK';
+    if(s.estado==='danger'){ bc='badge-danger'; bl='Sin stock'; }
+    else if(s.estado==='warn'){ bc='badge-warn'; bl='Bajo'; }
+    const pd=maxV>0?(Math.max(0,s.disponible)/maxV)*100:0;
+    const pe=maxV>0?(s.entregado/maxV)*100:0;
+    const el=document.createElement('div');
+    el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:0.82rem;font-weight:500;color:var(--text-primary);">'+s.s+'</span><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:0.7rem;color:var(--text-muted);">Disp: <strong style="color:var(--text-secondary);">'+s.disponible+'</strong> · Entr: <strong style="color:var(--text-secondary);">'+s.entregado+'</strong></span><span class="badge '+bc+'">'+bl+'</span></div></div><div style="display:flex;flex-direction:column;gap:3px;"><div class="bar-container"><div class="bar-fill" style="width:'+pd+'%;background:var(--gold);"></div></div><div class="bar-container"><div class="bar-fill" style="width:'+pe+'%;background:rgba(201,168,76,0.3);"></div></div></div>';
+    sc.appendChild(el);
+  });
+
+  // Barrios
+  if(chartBarrios) chartBarrios.destroy();
+  chartBarrios = new Chart(document.getElementById('chartBarrios').getContext('2d'),{
+    type:'bar',
+    data:{labels:d.barrios.map(b=>b.label),datasets:[{label:'Ingresos',data:d.barrios.map(b=>b.ingresos),backgroundColor:d.barrios.map((_,i)=>i===0?'#C9A84C':'rgba(201,168,76,0.25)'),borderColor:d.barrios.map((_,i)=>i===0?'#E8C96B':'#C9A84C'),borderWidth:1,borderRadius:4,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(22,20,16,0.96)',borderColor:'rgba(201,168,76,0.3)',borderWidth:0.5,titleColor:'#C9A84C',bodyColor:'#9A9080',padding:10,callbacks:{label:c=>' '+fmtP(c.parsed.x)}}},scales:{x:{ticks:{color:'#5C5648',font:{size:10},callback:v=>fmtP(v)},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},y:{ticks:{color:'#9A9080',font:{size:11}},grid:{display:false},border:{color:'rgba(255,255,255,0.06)'}}}}
+  });
 }
 
-function formatPesos(n) {
-  if (isNaN(n) || n === 0) return '—';
-  if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
-  if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
-  return '$' + Math.round(n).toLocaleString('es-AR');
-}
-
-function parseCSV(text) {
-  const lines = text.split('\n');
-  return lines.map(line => {
-    const cols = [];
-    let cur = '';
-    let inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (c === '"') { inQ = !inQ; }
-      else if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-      else { cur += c; }
+function parseCSV(text){
+  return text.split('\n').map(line=>{
+    const cols=[]; let cur='', inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){inQ=!inQ;}
+      else if(c===','&&!inQ){cols.push(cur.trim());cur='';}
+      else{cur+=c;}
     }
     cols.push(cur.trim());
     return cols;
   });
 }
 
-function findRowContaining(rows, keyword) {
-  return rows.find(r => r.some(c => c && String(c).toLowerCase().includes(keyword.toLowerCase())));
+function parsePesos(s){
+  if(!s)return 0;
+  const c=String(s).replace(/[$\s]/g,'').replace(/\./g,'').replace(',','.');
+  return parseFloat(c)||0;
+}
+function parseNum(s){
+  if(!s)return 0;
+  const c=String(s).replace(/[^\d.,\-]/g,'').replace(',','.');
+  return parseFloat(c)||0;
 }
 
-function findRowExact(rows, keyword) {
-  return rows.find(r => r[0] && String(r[0]).trim().toLowerCase() === keyword.toLowerCase());
-}
+function parsearCSV(text){
+  const rows=parseCSV(text);
+  const d=JSON.parse(JSON.stringify(DATOS_BASE));
 
-function extractMonthColumns(rows) {
-  const headerRow = rows.find(r => r.some(c => /nov|dic|ene|feb|mar|abr|may|jun|jul|ago|sep|oct/i.test(c)));
-  if (!headerRow) return { months: [], startIdx: 1 };
-  const months = [];
-  let startIdx = 1;
-  for (let i = 1; i < headerRow.length; i++) {
-    const c = String(headerRow[i] || '').trim();
-    if (/^(nov|dic|ene|feb|mar|abr|may|jun|jul|ago|sep|oct)/i.test(c) && c.length > 2) {
-      months.push({ label: c, idx: i });
-      if (months.length === 1) startIdx = i;
+  // KPIs
+  const rIng=rows.find(r=>r[0]&&r[0].trim()==='Total ingresos');
+  const rCos=rows.find(r=>r[0]&&r[0].trim()==='Total costos del negocio');
+  const rMrg=rows.find(r=>r[0]&&r[0].trim()==='Margen bruto');
+  const rDoc=rows.find(r=>r[0]&&r[0].trim()==='Docenas vendidas');
+  const rCob=rows.find(r=>r[0]&&r[0].trim()==='% cobranza');
+
+  function lastPesos(row){ if(!row)return 0; for(let i=row.length-1;i>=1;i--){const v=parsePesos(row[i]);if(v>0)return v;} return 0; }
+  function lastNum(row){ if(!row)return 0; for(let i=row.length-1;i>=1;i--){const v=parseNum(row[i]);if(v>0)return v;} return 0; }
+
+  if(rIng) d.kpis.ventas=lastPesos(rIng);
+  if(rCos) d.kpis.costos=lastPesos(rCos);
+  if(rMrg) d.kpis.margen=lastPesos(rMrg);
+  if(rDoc) d.kpis.docenas=lastNum(rDoc);
+  if(rCob){
+    for(let i=rCob.length-1;i>=1;i--){
+      const raw=String(rCob[i]||'').replace('%','').trim();
+      if(raw&&raw!=='-'){const v=parseFloat(raw.replace(',','.'));if(!isNaN(v)){d.kpis.cobranza=(v>1?v:v*100).toFixed(1)+'%';break;}}
     }
   }
-  return { months, startIdx };
-}
+  if(d.kpis.docenas>0) d.kpis.precioProm=Math.round(d.kpis.ventas/d.kpis.docenas);
 
-function setStatus(state, msg) {
-  const dot = document.getElementById('status-dot');
-  const txt = document.getElementById('status-text');
-  const btn = document.getElementById('sync-btn');
-  dot.className = 'status-dot' + (state === 'ok' ? '' : state === 'error' ? ' error' : ' loading');
-  txt.textContent = msg;
-  if (state === 'loading') { btn.classList.add('loading'); } else { btn.classList.remove('loading'); }
-}
-
-function getTotalCell(row) {
-  if (!row) return 0;
-  for (let i = row.length - 1; i >= 1; i--) {
-    const v = parsePesos(row[i]);
-    if (v > 0) return v;
-  }
-  return 0;
-}
-function getTotalNum(row) {
-  if (!row) return 0;
-  for (let i = row.length - 1; i >= 1; i--) {
-    const v = parseNum(row[i]);
-    if (v > 0) return v;
-  }
-  return 0;
-}
-function updateKPIs(rows) {
-  const rowIngresos = findRowContaining(rows, 'Total ingresos');
-  const rowCostos   = findRowContaining(rows, 'Total costos del negocio');
-  const rowMargen   = findRowContaining(rows, 'Margen bruto');
-  const rowDocenas  = findRowContaining(rows, 'Docenas vendidas');
-  const rowCobranza = findRowContaining(rows, '% cobranza');
-
-  const ventas  = getTotalCell(rowIngresos);
-  const costos  = getTotalCell(rowCostos);
-  const margen  = getTotalCell(rowMargen);
-  const docenas = getTotalNum(rowDocenas);
-  const pctMargen = ventas > 0 ? ((margen / ventas) * 100).toFixed(1) : 0;
-
-  let cobranzaPct = '99.0%';
-  if (rowCobranza) {
-    for (let i = rowCobranza.length - 1; i >= 1; i--) {
-      const raw = String(rowCobranza[i] || '').trim();
-      if (raw && raw !== '-' && raw !== '') {
-        const v = parseFloat(raw.replace('%','').replace(',','.'));
-        if (!isNaN(v)) { cobranzaPct = (v > 1 ? v : v * 100).toFixed(1) + '%'; break; }
+  // Evolución
+  const hRow=rows.find(r=>r[1]&&/nov.?25/i.test(r[1]));
+  if(hRow){
+    const meses=[];
+    for(let i=1;i<hRow.length;i++){
+      const c=String(hRow[i]||'').trim();
+      if(/^(nov|dic|ene|feb|mar|abr|may|jun|jul|ago|sep|oct)/i.test(c)&&!c.toLowerCase().includes('total')){
+        meses.push({label:c,idx:i});
       }
     }
+    const activos=meses.filter(m=>parsePesos(rIng?rIng[m.idx]:'0')>0);
+    if(activos.length>0){
+      d.evolucion.meses   =activos.map(m=>m.label);
+      d.evolucion.ingresos=activos.map(m=>parsePesos(rIng?rIng[m.idx]:0));
+      d.evolucion.costos  =activos.map(m=>parsePesos(rCos?rCos[m.idx]:0));
+      d.evolucion.margen  =activos.map(m=>parsePesos(rMrg?rMrg[m.idx]:0));
+    }
   }
 
-  document.getElementById('kpi-ventas').textContent   = formatPesos(ventas);
-  document.getElementById('kpi-costos').textContent   = formatPesos(costos);
-  document.getElementById('kpi-margen').textContent   = formatPesos(margen);
-  document.getElementById('kpi-docenas').textContent  = docenas > 0 ? docenas.toFixed(1) + ' doz.' : '—';
-  document.getElementById('kpi-margen-pct').textContent = pctMargen + '% del ingreso';
-  document.getElementById('kpi-cobranza').textContent = cobranzaPct;
+  // Sabores
+  const mixIdx=rows.findIndex(r=>r[0]&&r[0].includes('MIX DE SABORES'));
+  if(mixIdx>=0){
+    const sf=[];
+    const cols=['#C9A84C','#E8C96B','#E08060','#4CAF7A','#6B9EE8'];
+    let ci=0;
+    for(let i=mixIdx+1;i<Math.min(mixIdx+10,rows.length);i++){
+      const r=rows[i];
+      const nom=String(r[0]||'').trim();
+      if(!nom||nom==='Sabor'||nom==='TOTAL'||nom==='')continue;
+      const doc=parseNum(r[1]);
+      const pct=parseFloat(String(r[2]||'').replace('%','').replace(',','.'))||0;
+      if(doc>0) sf.push({label:nom,docenas:doc,pct:parseFloat(pct.toFixed(1)),color:cols[ci++]||'#888'});
+    }
+    if(sf.length>0) d.sabores=sf;
+  }
 
-  const precioProm = docenas > 0 && ventas > 0 ? ventas / docenas : 0;
-  document.getElementById('alert-precio-promedio').textContent = formatPesos(precioProm);
+  // Stock
+  const stIdx=rows.findIndex(r=>r.some(c=>String(c).includes('CONTROL DE STOCK')));
+  if(stIdx>=0){
+    const st=[];
+    for(let i=stIdx+1;i<Math.min(stIdx+10,rows.length);i++){
+      const r=rows[i];
+      const prod=String(r[7]||'').trim();
+      if(!prod||prod==='Producto'||prod==='TOTAL'||prod==='')continue;
+      const disp=parseNum(r[9]);
+      const entr=parseNum(r[11]);
+      const est=String(r[12]||'').trim();
+      let estado='ok';
+      if(est.includes('\u26d4')||est.toLowerCase().includes('sin')) estado='danger';
+      else if(est.includes('\u26a0')||est.toLowerCase().includes('bajo')) estado='warn';
+      if(parseNum(r[8])>0||disp!==0||entr>0) st.push({s:prod,disponible:disp,entregado:entr,estado});
+    }
+    if(st.length>0) d.stock=st;
+  }
+
+  // Barrios
+  const bIdx=rows.findIndex(r=>r[0]&&r[0].trim()==='VENTAS POR BARRIO');
+  if(bIdx>=0){
+    const br=[];
+    for(let i=bIdx+1;i<Math.min(bIdx+20,rows.length);i++){
+      const r=rows[i];
+      const nom=String(r[0]||'').trim();
+      if(!nom||nom==='Barrio'||nom==='TOTAL'||nom===''||nom.includes('Muestra'))continue;
+      const ing=parsePesos(r[3]);
+      if(ing>0) br.push({label:nom,ingresos:ing,pedidos:parseNum(r[1]),docenas:parseNum(r[2])});
+    }
+    if(br.length>0){
+      br.sort((a,b)=>b.ingresos-a.ingresos);
+      d.barrios=br.slice(0,8);
+    }
+  }
+
+  // Alertas
+  const aIdx=rows.findIndex(r=>r[0]&&r[0].includes('ALERTAS'));
+  if(aIdx>=0){
+    for(let i=aIdx+1;i<Math.min(aIdx+8,rows.length);i++){
+      const r=rows[i];
+      const con=String(r[0]||'').trim().toLowerCase();
+      const val=String(r[4]||r[3]||r[1]||'').trim();
+      if(con.includes('entrega')) d.alertas.pendientesEntrega=val==='-'?0:(parseNum(val)||0);
+      if(con.includes('cobro')&&!con.includes('monto')) d.alertas.pendientesCobro=val==='-'?0:(parseNum(val)||0);
+      if(con.includes('monto')) d.alertas.montoCobro=val==='-'?0:(parsePesos(val)||0);
+    }
+  }
+
+  return d;
 }
 
-function updateEvolucion(rows) {
-  const { months } = extractMonthColumns(rows);
-  if (!months.length) return;
+async function sincronizar(){
+  const dot=document.getElementById('status-dot');
+  const txt=document.getElementById('status-text');
+  const icon=document.getElementById('sync-icon');
+  dot.className='status-dot loading';
+  txt.textContent='Sincronizando...';
+  icon.style.animation='spin 1s linear infinite';
 
-  const rowIngresos = findRowContaining(rows, 'Total ingresos');
-  const rowCostos = findRowContaining(rows, 'Total costos del negocio');
-  const rowMargen = findRowContaining(rows, 'Margen bruto');
-
-  const allLabels = months.map(m => m.label);
-  const allIngresos = months.map(m => parsePesos(rowIngresos ? rowIngresos[m.idx] : 0));
-  const activeMths = months.filter((m,i) => allIngresos[i] > 0);
-  const labels = activeMths.map(m => m.label);
-  const dataIngresos = activeMths.map(m => parsePesos(rowIngresos ? rowIngresos[m.idx] : 0));
-  const dataCostos = activeMths.map(m => parsePesos(rowCostos ? rowCostos[m.idx] : 0));
-  const dataMargen = activeMths.map(m => parsePesos(rowMargen ? rowMargen[m.idx] : 0));
-
-  if (chartEvolucion) { chartEvolucion.destroy(); }
-  const ctx = document.getElementById('chartEvolucion').getContext('2d');
-  chartEvolucion = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Ingresos',
-          data: dataIngresos,
-          borderColor: '#C9A84C',
-          backgroundColor: 'rgba(201,168,76,0.08)',
-          fill: true,
-          tension: 0.4,
-          borderWidth: 2,
-          pointRadius: 4,
-          pointBackgroundColor: '#C9A84C',
-          pointBorderColor: '#0E0D0B',
-          pointBorderWidth: 1.5,
-        },
-        {
-          label: 'Costos',
-          data: dataCostos,
-          borderColor: '#E08060',
-          backgroundColor: 'rgba(224,128,96,0.05)',
-          fill: true,
-          tension: 0.4,
-          borderWidth: 2,
-          borderDash: [5, 4],
-          pointRadius: 3,
-          pointBackgroundColor: '#E08060',
-          pointBorderColor: '#0E0D0B',
-          pointBorderWidth: 1.5,
-        },
-        {
-          label: 'Margen',
-          data: dataMargen,
-          borderColor: '#4CAF7A',
-          backgroundColor: 'rgba(76,175,122,0.12)',
-          fill: true,
-          tension: 0.4,
-          borderWidth: 1.5,
-          pointRadius: 3,
-          pointBackgroundColor: '#4CAF7A',
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(22,20,16,0.96)',
-          borderColor: 'rgba(201,168,76,0.3)',
-          borderWidth: 0.5,
-          titleColor: '#C9A84C',
-          bodyColor: '#9A9080',
-          padding: 10,
-          callbacks: {
-            label: ctx => ' ' + ctx.dataset.label + ': ' + formatPesos(ctx.parsed.y)
-          }
-        }
-      },
-      scales: {
-        x: {
-          ticks: { color: '#5C5648', font: { size: 11 }, autoSkip: false, maxRotation: 0 },
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          border: { color: 'rgba(255,255,255,0.06)' }
-        },
-        y: {
-          ticks: {
-            color: '#5C5648', font: { size: 11 },
-            callback: v => formatPesos(v)
-          },
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          border: { color: 'rgba(255,255,255,0.06)' }
-        }
-      }
-    }
-  });
+  try{
+    const url=SHEETS_CSV_URL+(SHEETS_CSV_URL.includes('?')?'&':'?')+'_t='+Date.now();
+    const res=await fetch(url,{cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const text=await res.text();
+    const datos=parsearCSV(text);
+    renderAll(datos);
+    const now=new Date().toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('last-updated').textContent='Actualizado: '+now;
+    dot.className='status-dot';
+    txt.textContent='Datos sincronizados';
+  } catch(err){
+    console.error(err);
+    dot.className='status-dot error';
+    txt.textContent='Sin conexión — mostrando datos guardados';
+  }
+  icon.style.animation='';
 }
 
-const SABORES = ['Carne', 'Queso', 'Pollo', 'Choclo', 'Espinaca', 'Jamón', 'Humita'];
-const SABOR_COLORS = ['#C9A84C','#E8C96B','#E08060','#4CAF7A','#6B9EE8','#B07AE8','#E8905A'];
-
-function updateSabores(rows) {
-  const saborData = [];
-  SABORES.forEach((s, i) => {
-    const row = rows.find(r => r[0] && String(r[0]).trim().toLowerCase().includes(s.toLowerCase()));
-    if (row) {
-      const docenas = parseNum(row[1]) || parseNum(row[2]) || 0;
-      const pct = parseNum(row.find(c => String(c).includes('%')) || row[3]) || 0;
-      if (docenas > 0 || pct > 0) {
-        saborData.push({ label: s, docenas, pct, color: SABOR_COLORS[i] });
-      }
-    }
-  });
-  if (!saborData.length) return;
-
-  if (chartSabores) chartSabores.destroy();
-  const ctx = document.getElementById('chartSabores').getContext('2d');
-  chartSabores = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: saborData.map(s => s.label),
-      datasets: [{
-        data: saborData.map(s => s.docenas || s.pct),
-        backgroundColor: saborData.map(s => s.color),
-        borderColor: '#0E0D0B',
-        borderWidth: 2,
-        hoverOffset: 6
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      cutout: '68%',
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(22,20,16,0.96)',
-          borderColor: 'rgba(201,168,76,0.3)',
-          borderWidth: 0.5,
-          titleColor: '#C9A84C',
-          bodyColor: '#9A9080',
-          padding: 10,
-          callbacks: {
-            label: ctx => ' ' + ctx.label + ': ' + ctx.parsed.toFixed(1) + ' doz.'
-          }
-        }
-      }
-    }
-  });
-
-  const legend = document.getElementById('legend-sabores');
-  legend.innerHTML = '';
-  const total = saborData.reduce((a, s) => a + (s.docenas || s.pct), 0);
-  saborData.forEach(s => {
-    const pct = total > 0 ? ((s.docenas || s.pct) / total * 100).toFixed(1) : s.pct.toFixed(1);
-    const el = document.createElement('div');
-    el.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;';
-    el.innerHTML = `
-      <span style="display:flex;align-items:center;gap:6px;">
-        <span style="width:8px;height:8px;border-radius:50%;background:${s.color};flex-shrink:0;"></span>
-        <span style="color:var(--text-secondary);font-size:0.72rem;">${s.label}</span>
-      </span>
-      <span style="font-size:0.72rem;color:var(--text-primary);font-weight:500;">${pct}%</span>
-    `;
-    legend.appendChild(el);
-  });
-}
-
-function updateStock(rows) {
-  const container = document.getElementById('stock-table');
-  container.innerHTML = '';
-  const saboresData = [];
-  SABORES.forEach(s => {
-    const row = rows.find(r => r[0] && String(r[0]).trim().toLowerCase().includes(s.toLowerCase()));
-    if (row) {
-      let disponible = 0, entregado = 0, estado = '';
-      row.forEach((c, i) => {
-        const cv = String(c).trim();
-        if (cv.includes('✓') || cv.includes('⚠') || cv.includes('⛔')) estado = cv;
-        if (i > 0 && i < row.length - 2) {
-          const v = parseNum(c);
-          if (v > 0 && disponible === 0) disponible = v;
-          else if (v > 0 && entregado === 0) entregado = v;
-        }
-      });
-      if (disponible > 0 || entregado > 0) saboresData.push({ s, disponible, entregado, estado });
-    }
-  });
-  if (!saboresData.length) {
-    container.innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem;">Sin datos de stock disponibles.</div>';
-    return;
-  }
-  const maxVal = Math.max(...saboresData.map(d => Math.max(d.disponible, d.entregado)));
-  saboresData.forEach(d => {
-    let badgeClass = 'badge-ok', badgeLabel = 'OK';
-    if (d.estado.includes('⛔') || d.estado.toLowerCase().includes('sin')) { badgeClass = 'badge-danger'; badgeLabel = 'Sin stock'; }
-    else if (d.estado.includes('⚠') || d.estado.toLowerCase().includes('bajo')) { badgeClass = 'badge-warn'; badgeLabel = 'Bajo'; }
-    const pctDisp = maxVal > 0 ? (d.disponible / maxVal) * 100 : 0;
-    const pctEntr = maxVal > 0 ? (d.entregado / maxVal) * 100 : 0;
-    const item = document.createElement('div');
-    item.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-        <span style="font-size:0.82rem;font-weight:500;color:var(--text-primary);">${d.s}</span>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:0.7rem;color:var(--text-muted);">Disp: <strong style="color:var(--text-secondary);">${d.disponible}</strong> · Entr: <strong style="color:var(--text-secondary);">${d.entregado}</strong></span>
-          <span class="badge ${badgeClass}">${badgeLabel}</span>
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:3px;">
-        <div class="bar-container"><div class="bar-fill" style="width:${pctDisp}%;background:var(--gold);"></div></div>
-        <div class="bar-container"><div class="bar-fill" style="width:${pctEntr}%;background:rgba(201,168,76,0.3);"></div></div>
-      </div>
-    `;
-    container.appendChild(item);
-  });
-}
-
-const BARRIOS_KEYWORDS = ['Laguna', 'Newman', 'Santa Bárbara', 'Santa Barbara', 'Ayres', 'Lagos', 'Pilar', 'Diquecito', 'Nordelta', 'Puertos'];
-
-function updateBarrios(rows) {
-  const barriosData = [];
-  BARRIOS_KEYWORDS.forEach(b => {
-    const row = rows.find(r => r[0] && String(r[0]).toLowerCase().includes(b.toLowerCase()));
-    if (row) {
-      let ingresos = 0;
-      for (let i = row.length - 1; i >= 1; i--) {
-        const v = parsePesos(row[i]);
-        if (v > 0) { ingresos = v; break; }
-      }
-      let pedidos = parseNum(row[1]) || 0;
-      let docenas = parseNum(row[2]) || 0;
-      if (ingresos > 0 || docenas > 0) {
-        barriosData.push({ label: b, ingresos, pedidos, docenas });
-      }
-    }
-  });
-  if (!barriosData.length) {
-    document.getElementById('chart-barrios-wrap').style.height = '40px';
-    return;
-  }
-  barriosData.sort((a, b) => b.ingresos - a.ingresos);
-  const top = barriosData.slice(0, 7);
-  const wrap = document.getElementById('chart-barrios-wrap');
-  wrap.style.height = Math.max(top.length * 40 + 60, 200) + 'px';
-  if (chartBarrios) chartBarrios.destroy();
-  const ctx = document.getElementById('chartBarrios').getContext('2d');
-  chartBarrios = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: top.map(b => b.label),
-      datasets: [{
-        label: 'Ingresos',
-        data: top.map(b => b.ingresos),
-        backgroundColor: top.map((_, i) => i === 0 ? '#C9A84C' : 'rgba(201,168,76,0.25)'),
-        borderColor: top.map((_, i) => i === 0 ? '#E8C96B' : '#C9A84C'),
-        borderWidth: 1,
-        borderRadius: 4,
-        borderSkipped: false
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(22,20,16,0.96)',
-          borderColor: 'rgba(201,168,76,0.3)',
-          borderWidth: 0.5,
-          titleColor: '#C9A84C',
-          bodyColor: '#9A9080',
-          padding: 10,
-          callbacks: { label: ctx => ' ' + formatPesos(ctx.parsed.x) }
-        }
-      },
-      scales: {
-        x: {
-          ticks: { color: '#5C5648', font: { size: 10 }, callback: v => formatPesos(v) },
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          border: { color: 'rgba(255,255,255,0.06)' }
-        },
-        y: {
-          ticks: { color: '#9A9080', font: { size: 11 } },
-          grid: { display: false },
-          border: { color: 'rgba(255,255,255,0.06)' }
-        }
-      }
-    }
-  });
-}
-
-function updateAlertas(rows) {
-  const rowPendEnt = findRowContaining(rows, 'pendiente') || findRowContaining(rows, 'Pendientes entrega');
-  const rowPendCob = findRowContaining(rows, 'pendiente cobro') || findRowContaining(rows, 'sin cobrar');
-  const rowMontoCob = findRowContaining(rows, 'monto pendiente') || findRowContaining(rows, 'deuda');
-
-  function lastVal(row) {
-    if (!row) return null;
-    for (let i = row.length - 1; i >= 1; i--) {
-      const v = parseNum(row[i]);
-      if (v !== 0) return v;
-    }
-    return null;
-  }
-
-  const pendEnt = lastVal(rowPendEnt);
-  const pendCob = lastVal(rowPendCob);
-  const montoCob = rowMontoCob ? parsePesos(rowMontoCob[rowMontoCob.length - 1]) || parsePesos(rowMontoCob[1]) : null;
-
-  document.getElementById('alert-pendientes-entrega').textContent = pendEnt !== null ? pendEnt : '0';
-  document.getElementById('alert-pendientes-cobro').textContent = pendCob !== null ? pendCob : '0';
-  document.getElementById('alert-monto-cobro').textContent = montoCob !== null ? formatPesos(montoCob) : '$0';
-}
-
-async function loadData() {
-  const btn = document.getElementById('sync-btn');
-  setStatus('loading', 'Sincronizando...');
-  const icon = btn.querySelector('svg');
-  icon.style.animation = 'spin 1s linear infinite';
-  const styleEl = document.createElement('style');
-  styleEl.id = 'spin-style';
-  styleEl.textContent = '@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}';
-  if (!document.getElementById('spin-style')) document.head.appendChild(styleEl);
-
-  if (!SHEETS_CSV_URL || SHEETS_CSV_URL === "TU_URL_CSV_AQUI") {
-    setStatus('error', 'URL no configurada');
-    icon.style.animation = '';
-    loadDemoData();
-    return;
-  }
-
-  try {
-    const cacheBuster = SHEETS_CSV_URL.includes('?') ? '&_t=' + Date.now() : '?_t=' + Date.now();
-    const url = SHEETS_CSV_URL + cacheBuster;
-    const response = await fetch(url, { cache: 'no-store', mode: 'cors' });
-    if (!response.ok) throw new Error('HTTP ' + response.status);
-    const text = await response.text();
-    const rows = parseCSV(text);
-    processRealData(rows);
-    const now = new Date().toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    document.getElementById('last-updated').textContent = 'Última actualización: ' + now;
-    setStatus('ok', 'Datos sincronizados');
-  } catch (err) {
-    console.error('Error al cargar datos:', err);
-    setStatus('error', 'Error de conexión — cargando datos embebidos');
-    loadDemoData();
-  }
-  icon.style.animation = '';
-}
-
-function processRealData(rows) {
-  // KPIs desde columna TOTAL (ultima columna con valor)
-  const rowIngresos = rows.find(r => r[0] && r[0].trim() === 'Total ingresos');
-  const rowCostos   = rows.find(r => r[0] && r[0].trim() === 'Total costos del negocio');
-  const rowMargen   = rows.find(r => r[0] && r[0].trim() === 'Margen bruto');
-  const rowDocenas  = rows.find(r => r[0] && r[0].trim() === 'Docenas vendidas');
-  const rowCobranza = rows.find(r => r[0] && r[0].trim() === '% cobranza');
-
-  const ventas  = getTotalCell(rowIngresos);
-  const costos  = getTotalCell(rowCostos);
-  const margen  = getTotalCell(rowMargen);
-  const docenas = getTotalNum(rowDocenas);
-  const pctMargen = ventas > 0 ? ((margen / ventas) * 100).toFixed(1) : '0';
-
-  let cobranzaPct = '99.0%';
-  if (rowCobranza) {
-    for (let i = rowCobranza.length - 1; i >= 1; i--) {
-      const raw = String(rowCobranza[i] || '').replace('%','').trim();
-      if (raw && raw !== '-') {
-        const v = parseFloat(raw.replace(',','.'));
-        if (!isNaN(v)) { cobranzaPct = (v > 1 ? v : v * 100).toFixed(1) + '%'; break; }
-      }
-    }
-  }
-
-  document.getElementById('kpi-ventas').textContent   = formatPesos(ventas);
-  document.getElementById('kpi-costos').textContent   = formatPesos(costos);
-  document.getElementById('kpi-margen').textContent   = formatPesos(margen);
-  document.getElementById('kpi-docenas').textContent  = docenas > 0 ? docenas.toFixed(1) + ' doz.' : '—';
-  document.getElementById('kpi-margen-pct').textContent = pctMargen + '% del ingreso';
-  document.getElementById('kpi-cobranza').textContent = cobranzaPct;
-  document.getElementById('alert-precio-promedio').textContent = docenas > 0 ? formatPesos(ventas / docenas) : '—';
-
-  // EVOLUCIÓN MENSUAL - buscar fila header con meses
-  const headerRow = rows.find(r => r[1] && /nov|dic|ene|feb|mar|abr|may/i.test(r[1]));
-  if (headerRow) {
-    const meses = [];
-    for (let i = 1; i < headerRow.length; i++) {
-      const c = String(headerRow[i] || '').trim();
-      if (/^(nov|dic|ene|feb|mar|abr|may|jun|jul|ago|sep|oct)/i.test(c) && c.length > 2 && c.toUpperCase() !== 'TOTAL') {
-        meses.push({ label: c, idx: i });
-      }
-    }
-    const activeMeses = meses.filter(m => {
-      const v = parsePesos(rowIngresos ? rowIngresos[m.idx] : '');
-      return v > 0;
-    });
-    if (activeMeses.length > 0) {
-      const labels      = activeMeses.map(m => m.label);
-      const dataIng     = activeMeses.map(m => parsePesos(rowIngresos ? rowIngresos[m.idx] : 0));
-      const dataCos     = activeMeses.map(m => parsePesos(rowCostos   ? rowCostos[m.idx]   : 0));
-      const dataMrg     = activeMeses.map(m => parsePesos(rowMargen   ? rowMargen[m.idx]   : 0));
-      if (chartEvolucion) chartEvolucion.destroy();
-      const ctx = document.getElementById('chartEvolucion').getContext('2d');
-      chartEvolucion = new Chart(ctx, {
-        type: 'line',
-        data: { labels, datasets: [
-          { label:'Ingresos', data:dataIng, borderColor:'#C9A84C', backgroundColor:'rgba(201,168,76,0.08)', fill:true, tension:0.4, borderWidth:2, pointRadius:4, pointBackgroundColor:'#C9A84C', pointBorderColor:'#0E0D0B', pointBorderWidth:1.5 },
-          { label:'Costos',   data:dataCos, borderColor:'#E08060', backgroundColor:'rgba(224,128,96,0.05)', fill:true, tension:0.4, borderWidth:2, borderDash:[5,4], pointRadius:3, pointBackgroundColor:'#E08060', pointBorderColor:'#0E0D0B', pointBorderWidth:1.5 },
-          { label:'Margen',   data:dataMrg, borderColor:'#4CAF7A', backgroundColor:'rgba(76,175,122,0.12)', fill:true, tension:0.4, borderWidth:1.5, pointRadius:3, pointBackgroundColor:'#4CAF7A' }
-        ]},
-        options: { responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
-          plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(22,20,16,0.96)', borderColor:'rgba(201,168,76,0.3)', borderWidth:0.5, titleColor:'#C9A84C', bodyColor:'#9A9080', padding:10, callbacks:{ label: ctx => ' '+ctx.dataset.label+': '+formatPesos(ctx.parsed.y) }}},
-          scales:{ x:{ ticks:{color:'#5C5648',font:{size:11},autoSkip:false,maxRotation:0}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'}}, y:{ ticks:{color:'#5C5648',font:{size:11},callback:v=>formatPesos(v)}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'}}}}
-      });
-    }
-  }
-
-  // MIX DE SABORES - buscar sección "MIX DE SABORES VENDIDOS"
-  const mixIdx = rows.findIndex(r => r[0] && r[0].includes('MIX DE SABORES'));
-  const SABOR_NAMES = ['Carne','Queso','Pollo','Choclo','Espinaca'];
-  const SABOR_COLORS_LIST = ['#C9A84C','#E8C96B','#E08060','#4CAF7A','#6B9EE8'];
-  const saborData = [];
-  if (mixIdx >= 0) {
-    for (let i = mixIdx + 1; i < Math.min(mixIdx + 10, rows.length); i++) {
-      const r = rows[i];
-      if (!r[0] || r[0].trim() === '' || r[0].trim() === 'TOTAL' || r[0].trim() === 'Sabor') continue;
-      const nombre = r[0].trim();
-      const docenasS = parseNum(r[1]);
-      const pctS = parseFloat(String(r[2]||'').replace('%','').replace(',','.')) || 0;
-      const colorIdx = SABOR_NAMES.findIndex(s => nombre.toLowerCase().includes(s.toLowerCase()));
-      if (docenasS > 0) {
-        saborData.push({ label: nombre, docenas: docenasS, pct: pctS, color: colorIdx >= 0 ? SABOR_COLORS_LIST[colorIdx] : '#888' });
-      }
-    }
-  }
-  if (saborData.length > 0) {
-    if (chartSabores) chartSabores.destroy();
-    const ctx2 = document.getElementById('chartSabores').getContext('2d');
-    chartSabores = new Chart(ctx2, {
-      type: 'doughnut',
-      data: { labels: saborData.map(s=>s.label), datasets:[{ data:saborData.map(s=>s.docenas), backgroundColor:saborData.map(s=>s.color), borderColor:'#0E0D0B', borderWidth:2, hoverOffset:6 }]},
-      options:{ responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(22,20,16,0.96)', borderColor:'rgba(201,168,76,0.3)', borderWidth:0.5, titleColor:'#C9A84C', bodyColor:'#9A9080', padding:10, callbacks:{ label: ctx => ' '+ctx.label+': '+ctx.parsed.toFixed(1)+' doz. ('+saborData[ctx.dataIndex].pct+'%)'}}}}
-    });
-    const legend = document.getElementById('legend-sabores');
-    legend.innerHTML = '';
-    saborData.forEach(s => {
-      const el = document.createElement('div');
-      el.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;';
-      el.innerHTML = '<span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:'+s.color+';flex-shrink:0;"></span><span style="color:var(--text-secondary);font-size:0.72rem;">'+s.label+'</span></span><span style="font-size:0.72rem;color:var(--text-primary);font-weight:500;">'+s.pct+'%</span>';
-      legend.appendChild(el);
-    });
-  }
-
-  // STOCK - buscar sección "CONTROL DE STOCK"
-  const stockIdx = rows.findIndex(r => r.some(c => String(c).includes('CONTROL DE STOCK')));
-  const stockContainer = document.getElementById('stock-table');
-  stockContainer.innerHTML = '';
-  const stockData = [];
-  if (stockIdx >= 0) {
-    for (let i = stockIdx + 1; i < Math.min(stockIdx + 10, rows.length); i++) {
-      const r = rows[i];
-      const prod = String(r[7] || '').trim();
-      if (!prod || prod === 'Producto' || prod === 'TOTAL' || prod === '') continue;
-      const comprado   = parseNum(r[8]);
-      const disponible = parseNum(r[9]);
-      const entregado  = parseNum(r[11]);
-      const estado     = String(r[12] || '').trim();
-      if (comprado > 0 || disponible !== 0 || entregado > 0) {
-        stockData.push({ s: prod, disponible, entregado, estado });
-      }
-    }
-  }
-  if (stockData.length > 0) {
-    const maxV = Math.max(...stockData.map(d => Math.max(Math.abs(d.disponible), d.entregado)));
-    stockData.forEach(d => {
-      let bc = 'badge-ok', bl = 'OK';
-      if (d.estado.includes('⛔') || d.estado.toLowerCase().includes('sin stock')) { bc = 'badge-danger'; bl = 'Sin stock'; }
-      else if (d.estado.includes('⚠') || d.estado.toLowerCase().includes('bajo')) { bc = 'badge-warn'; bl = 'Bajo'; }
-      const pctD = maxV > 0 ? (Math.max(0, d.disponible) / maxV) * 100 : 0;
-      const pctE = maxV > 0 ? (d.entregado / maxV) * 100 : 0;
-      const item = document.createElement('div');
-      item.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:0.82rem;font-weight:500;color:var(--text-primary);">'+d.s+'</span><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:0.7rem;color:var(--text-muted);">Disp: <strong style="color:var(--text-secondary);">'+d.disponible+'</strong> · Entr: <strong style="color:var(--text-secondary);">'+d.entregado+'</strong></span><span class="badge '+bc+'">'+bl+'</span></div></div><div style="display:flex;flex-direction:column;gap:3px;"><div class="bar-container"><div class="bar-fill" style="width:'+pctD+'%;background:var(--gold);"></div></div><div class="bar-container"><div class="bar-fill" style="width:'+pctE+'%;background:rgba(201,168,76,0.3);"></div></div></div>';
-      stockContainer.appendChild(item);
-    });
-  } else {
-    stockContainer.innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem;">Sin datos de stock.</div>';
-  }
-
-  // BARRIOS - buscar sección "VENTAS POR BARRIO"
-  const barrioIdx = rows.findIndex(r => r[0] && r[0].trim() === 'VENTAS POR BARRIO');
-  const barriosData = [];
-  if (barrioIdx >= 0) {
-    for (let i = barrioIdx + 1; i < Math.min(barrioIdx + 20, rows.length); i++) {
-      const r = rows[i];
-      const barrio = String(r[0] || '').trim();
-      if (!barrio || barrio === 'Barrio' || barrio === 'TOTAL' || barrio === '' || barrio.includes('Muestra')) continue;
-      const ingresos = parsePesos(r[3]);
-      const pedidos  = parseNum(r[1]);
-      const docenasB = parseNum(r[2]);
-      if (ingresos > 0) barriosData.push({ label: barrio, ingresos, pedidos, docenas: docenasB });
-    }
-  }
-  barriosData.sort((a,b) => b.ingresos - a.ingresos);
-  const top = barriosData.slice(0, 8);
-  if (top.length > 0) {
-    const wrap = document.getElementById('chart-barrios-wrap');
-    wrap.style.height = Math.max(top.length * 44 + 60, 200) + 'px';
-    if (chartBarrios) chartBarrios.destroy();
-    const ctx3 = document.getElementById('chartBarrios').getContext('2d');
-    chartBarrios = new Chart(ctx3, {
-      type: 'bar',
-      data: { labels: top.map(b=>b.label), datasets:[{ label:'Ingresos', data:top.map(b=>b.ingresos), backgroundColor:top.map((_,i)=>i===0?'#C9A84C':'rgba(201,168,76,0.25)'), borderColor:top.map((_,i)=>i===0?'#E8C96B':'#C9A84C'), borderWidth:1, borderRadius:4, borderSkipped:false }]},
-      options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(22,20,16,0.96)', borderColor:'rgba(201,168,76,0.3)', borderWidth:0.5, titleColor:'#C9A84C', bodyColor:'#9A9080', padding:10, callbacks:{ label: ctx => ' '+formatPesos(ctx.parsed.x) }}}, scales:{ x:{ ticks:{color:'#5C5648',font:{size:10},callback:v=>formatPesos(v)}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'}}, y:{ ticks:{color:'#9A9080',font:{size:11}}, grid:{display:false}, border:{color:'rgba(255,255,255,0.06)'}}}}
-    });
-  }
-
-  // ALERTAS DE GESTIÓN - buscar sección "ALERTAS Y MÉTRICAS"
-  const alertIdx = rows.findIndex(r => r[0] && r[0].includes('ALERTAS Y'));
-  if (alertIdx >= 0) {
-    for (let i = alertIdx + 1; i < Math.min(alertIdx + 8, rows.length); i++) {
-      const r = rows[i];
-      const concepto = String(r[0] || '').trim().toLowerCase();
-      const valor = String(r[4] || r[3] || '').trim();
-      if (concepto.includes('pendientes de entrega') || concepto.includes('pendiente de entrega')) {
-        document.getElementById('alert-pendientes-entrega').textContent = valor === '-' ? '0' : valor || '0';
-      }
-      if (concepto.includes('pendientes de cobro') || concepto.includes('pendiente de cobro')) {
-        document.getElementById('alert-pendientes-cobro').textContent = valor === '-' ? '0' : valor || '0';
-      }
-      if (concepto.includes('monto pendiente')) {
-        document.getElementById('alert-monto-cobro').textContent = valor === '-' ? '$0' : formatPesos(parsePesos(valor)) || '$0';
-      }
-    }
-  }
-}
-
-function processData(rows) {
-  updateKPIs(rows);
-  updateEvolucion(rows);
-  updateSabores(rows);
-  updateStock(rows);
-  updateBarrios(rows);
-  updateAlertas(rows);
-}
-
-function loadDemoData() {
-  const MESES = ['Nov-25','Dic-25','Ene-26','Feb-26','Mar-26','Abr-26','May-26'];
-  const ING = [852000, 978500, 1105000, 1230000, 1345000, 1408000, 1481000];
-  const COS = [685000, 785000, 888500, 988000, 1081000, 1131000, 1195000];
-  const MRG = ING.map((v, i) => v - COS[i]);
-  const DOC = [32.5, 37, 41.5, 46, 51, 44, 43.5];
-
-  const totalIng = ING.reduce((a, b) => a + b, 0);
-  const totalCos = COS.reduce((a, b) => a + b, 0);
-  const totalMrg = MRG.reduce((a, b) => a + b, 0);
-  const totalDoc = DOC.reduce((a, b) => a + b, 0);
-  document.getElementById('kpi-ventas').textContent = formatPesos(7399500);
-  document.getElementById('kpi-costos').textContent = formatPesos(5954466);
-  document.getElementById('kpi-margen').textContent = formatPesos(1445034);
-  document.getElementById('kpi-margen-pct').textContent = '19.5% del ingreso';
-  document.getElementById('kpi-docenas').textContent = '295.5 doz.';
-  document.getElementById('kpi-cobranza').textContent = '99.0%';
-
-  if (chartEvolucion) chartEvolucion.destroy();
-  const ctx1 = document.getElementById('chartEvolucion').getContext('2d');
-  chartEvolucion = new Chart(ctx1, {
-    type: 'line',
-    data: {
-      labels: MESES,
-      datasets: [
-        { label: 'Ingresos', data: ING, borderColor: '#C9A84C', backgroundColor: 'rgba(201,168,76,0.08)', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#C9A84C', pointBorderColor: '#0E0D0B', pointBorderWidth: 1.5 },
-        { label: 'Costos', data: COS, borderColor: '#E08060', backgroundColor: 'rgba(224,128,96,0.05)', fill: true, tension: 0.4, borderWidth: 2, borderDash: [5,4], pointRadius: 3, pointBackgroundColor: '#E08060', pointBorderColor: '#0E0D0B', pointBorderWidth: 1.5 },
-        { label: 'Margen', data: MRG, borderColor: '#4CAF7A', backgroundColor: 'rgba(76,175,122,0.12)', fill: true, tension: 0.4, borderWidth: 1.5, pointRadius: 3, pointBackgroundColor: '#4CAF7A' }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(22,20,16,0.96)', borderColor: 'rgba(201,168,76,0.3)', borderWidth: 0.5, titleColor: '#C9A84C', bodyColor: '#9A9080', padding: 10, callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + formatPesos(ctx.parsed.y) } } },
-      scales: {
-        x: { ticks: { color: '#5C5648', font: { size: 11 }, autoSkip: false, maxRotation: 0 }, grid: { color: 'rgba(255,255,255,0.04)' }, border: { color: 'rgba(255,255,255,0.06)' } },
-        y: { ticks: { color: '#5C5648', font: { size: 11 }, callback: v => formatPesos(v) }, grid: { color: 'rgba(255,255,255,0.04)' }, border: { color: 'rgba(255,255,255,0.06)' } }
-      }
-    }
-  });
-
-  const SABOR_DEMO = [
-    { label: 'Carne', docenas: 118.2, color: '#C9A84C' },
-    { label: 'Queso', docenas: 47.3, color: '#E8C96B' },
-    { label: 'Pollo', docenas: 59.1, color: '#E08060' },
-    { label: 'Choclo', docenas: 35.5, color: '#4CAF7A' },
-    { label: 'Espinaca', docenas: 23.6, color: '#6B9EE8' },
-  ];
-  if (chartSabores) chartSabores.destroy();
-  const ctx2 = document.getElementById('chartSabores').getContext('2d');
-  chartSabores = new Chart(ctx2, {
-    type: 'doughnut',
-    data: {
-      labels: SABOR_DEMO.map(s => s.label),
-      datasets: [{ data: SABOR_DEMO.map(s => s.docenas), backgroundColor: SABOR_DEMO.map(s => s.color), borderColor: '#0E0D0B', borderWidth: 2, hoverOffset: 6 }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(22,20,16,0.96)', borderColor: 'rgba(201,168,76,0.3)', borderWidth: 0.5, titleColor: '#C9A84C', bodyColor: '#9A9080', padding: 10, callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.parsed.toFixed(1) + ' doz.' } } } }
-  });
-  const legend = document.getElementById('legend-sabores');
-  legend.innerHTML = '';
-  const totS = SABOR_DEMO.reduce((a, s) => a + s.docenas, 0);
-  SABOR_DEMO.forEach(s => {
-    const pct = ((s.docenas / totS) * 100).toFixed(1);
-    const el = document.createElement('div');
-    el.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;';
-    el.innerHTML = `<span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:${s.color};flex-shrink:0;"></span><span style="color:var(--text-secondary);font-size:0.72rem;">${s.label}</span></span><span style="font-size:0.72rem;color:var(--text-primary);font-weight:500;">${pct}%</span>`;
-    legend.appendChild(el);
-  });
-
-  const STOCK_DEMO = [
-    { s: 'Carne', disponible: 48, entregado: 120, estado: '✓ OK' },
-    { s: 'Queso', disponible: 12, entregado: 48, estado: '⚠️ Bajo' },
-    { s: 'Pollo', disponible: 24, entregado: 60, estado: '✓ OK' },
-    { s: 'Choclo', disponible: 0, entregado: 36, estado: '⛔ Sin stock' },
-    { s: 'Espinaca', disponible: 18, entregado: 24, estado: '✓ OK' },
-  ];
-  const stockContainer = document.getElementById('stock-table');
-  stockContainer.innerHTML = '';
-  const maxV = Math.max(...STOCK_DEMO.map(d => Math.max(d.disponible, d.entregado)));
-  STOCK_DEMO.forEach(d => {
-    let bc = 'badge-ok', bl = 'OK';
-    if (d.estado.includes('⛔')) { bc = 'badge-danger'; bl = 'Sin stock'; }
-    else if (d.estado.includes('⚠')) { bc = 'badge-warn'; bl = 'Bajo'; }
-    const pctD = maxV > 0 ? (d.disponible / maxV) * 100 : 0;
-    const pctE = maxV > 0 ? (d.entregado / maxV) * 100 : 0;
-    const item = document.createElement('div');
-    item.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:0.82rem;font-weight:500;color:var(--text-primary);">${d.s}</span><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:0.7rem;color:var(--text-muted);">Disp: <strong style="color:var(--text-secondary);">${d.disponible}</strong> · Entr: <strong style="color:var(--text-secondary);">${d.entregado}</strong></span><span class="badge ${bc}">${bl}</span></div></div><div style="display:flex;flex-direction:column;gap:3px;"><div class="bar-container"><div class="bar-fill" style="width:${pctD}%;background:var(--gold);"></div></div><div class="bar-container"><div class="bar-fill" style="width:${pctE}%;background:rgba(201,168,76,0.3);"></div></div></div>`;
-    stockContainer.appendChild(item);
-  });
-
-  const BARRIOS_DEMO = [
-    { label: 'Laguna', ingresos: 2240000 },
-    { label: 'Santa Bárbara', ingresos: 1890000 },
-    { label: 'Newman', ingresos: 1560000 },
-    { label: 'Ayres', ingresos: 980000 },
-    { label: 'Lagos', ingresos: 740000 },
-  ];
-  const wrap = document.getElementById('chart-barrios-wrap');
-  wrap.style.height = Math.max(BARRIOS_DEMO.length * 40 + 60, 200) + 'px';
-  if (chartBarrios) chartBarrios.destroy();
-  const ctx3 = document.getElementById('chartBarrios').getContext('2d');
-  chartBarrios = new Chart(ctx3, {
-    type: 'bar',
-    data: {
-      labels: BARRIOS_DEMO.map(b => b.label),
-      datasets: [{ label: 'Ingresos', data: BARRIOS_DEMO.map(b => b.ingresos), backgroundColor: BARRIOS_DEMO.map((_, i) => i === 0 ? '#C9A84C' : 'rgba(201,168,76,0.25)'), borderColor: BARRIOS_DEMO.map((_, i) => i === 0 ? '#E8C96B' : '#C9A84C'), borderWidth: 1, borderRadius: 4, borderSkipped: false }]
-    },
-    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(22,20,16,0.96)', borderColor: 'rgba(201,168,76,0.3)', borderWidth: 0.5, titleColor: '#C9A84C', bodyColor: '#9A9080', padding: 10, callbacks: { label: ctx => ' ' + formatPesos(ctx.parsed.x) } } }, scales: { x: { ticks: { color: '#5C5648', font: { size: 10 }, callback: v => formatPesos(v) }, grid: { color: 'rgba(255,255,255,0.04)' }, border: { color: 'rgba(255,255,255,0.06)' } }, y: { ticks: { color: '#9A9080', font: { size: 11 } }, grid: { display: false }, border: { color: 'rgba(255,255,255,0.06)' } } } }
-  });
-
-  document.getElementById('alert-pendientes-entrega').textContent = '3';
-  document.getElementById('alert-pendientes-cobro').textContent = '1';
-  document.getElementById('alert-monto-cobro').textContent = formatPesos(totalIng * 0.01);
-  document.getElementById('alert-precio-promedio').textContent = formatPesos(totalIng / totalDoc);
-
-  document.getElementById('last-updated').textContent = '⚠ Modo demo — configurá la URL CSV para datos reales';
-}
-
-window.addEventListener('DOMContentLoaded', () => loadData());
+// Arrancar con datos reales hardcodeados siempre
+window.addEventListener('DOMContentLoaded',()=>{
+  renderAll(DATOS_BASE);
+  sincronizar();
+});
 </script>
 </body>
 </html>
