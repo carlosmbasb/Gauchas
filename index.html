@@ -264,16 +264,29 @@ function parseCSV(txt){
     return cols;
   });
 }
-function pP(s){ // parse pesos
-  if(!s)return 0;
-  const c=String(s).replace(/[$\s]/g,'').replace(/\./g,'').replace(',','.');
-  return parseFloat(c)||0;
+function pP(s){ // parse pesos - maneja $1,886,000 y $1.886.000
+  if(!s||String(s).trim()==='-'||String(s).trim()==='')return 0;
+  let v=String(s).trim();
+  v=v.replace(/[$\s]/g,''); // sacar $ y espacios
+  // Si tiene coma y punto: 1,886,000 -> coma es sep miles, punto es decimal
+  if(v.includes(',')&&v.includes('.')){
+    v=v.replace(/,/g,''); // sacar comas (sep miles)
+  } else if(v.includes(',')&&!v.includes('.')){
+    // puede ser 1,886,000 (comas = sep miles) o 1,5 (coma = decimal)
+    const parts=v.split(',');
+    if(parts[parts.length-1].length===3&&parts.length>1){
+      v=v.replace(/,/g,''); // sep miles
+    } else {
+      v=v.replace(',','.'); // decimal
+    }
+  }
+  return parseFloat(v)||0;
 }
 function pN(s){ // parse number, handle (n) as negative
-  if(!s)return 0;
+  if(!s||String(s).trim()==='-'||String(s).trim()==='')return 0;
   const str=String(s).trim();
   const neg=str.startsWith('(')&&str.endsWith(')');
-  const v=parseFloat(str.replace(/[^\d.]/g,'').replace(',','.'))||0;
+  const v=parseFloat(str.replace(/[^\d.,]/g,'').replace(',','.'))||0;
   return neg?-v:v;
 }
 
@@ -287,8 +300,24 @@ function procesarCSV(txt){
   const rD=rows.find(r=>r[0]&&r[0].trim()==='Docenas vendidas');
   const rCb=rows.find(r=>r[0]&&r[0].trim()==='% cobranza');
 
-  function lastP(row){ if(!row)return 0; for(let i=row.length-1;i>=1;i--){const v=pP(row[i]);if(v>0)return v;} return 0; }
-  function lastN(row){ if(!row)return 0; for(let i=row.length-1;i>=1;i--){const v=pN(row[i]);if(v>0)return v;} return 0; }
+  function lastP(row){
+    if(!row)return 0;
+    // Primero intentar la penultima columna (antes de TOTAL) - col indice length-2
+    // Luego buscar desde el final
+    for(let i=row.length-1;i>=1;i--){
+      const raw=String(row[i]||'').trim();
+      if(raw&&raw!=='-'&&raw!==''){const v=pP(raw);if(v>0)return v;}
+    }
+    return 0;
+  }
+  function lastN(row){
+    if(!row)return 0;
+    for(let i=row.length-1;i>=1;i--){
+      const raw=String(row[i]||'').trim();
+      if(raw&&raw!=='-'&&raw!==''){const v=pN(raw);if(v>0)return v;}
+    }
+    return 0;
+  }
 
   if(rI) D.ventas=lastP(rI);
   if(rC) D.costos=lastP(rC);
@@ -301,15 +330,19 @@ function procesarCSV(txt){
     }
   }
 
-  // Evolución - buscar header con Nov-25
-  const hRow=rows.find(r=>r.some(c=>/nov.?25/i.test(String(c))));
+  // Evolución - buscar fila "Concepto" que tiene los headers de meses
+  const hRow=rows.find(r=>r[0]&&r[0].trim()==='Concepto');
   if(hRow){
     const meses=[];
     for(let i=1;i<hRow.length;i++){
       const c=String(hRow[i]||'').trim();
       if(/^(nov|dic|ene|feb|mar|abr|may|jun|jul|ago|sep|oct)/i.test(c)&&!/total/i.test(c)) meses.push({l:c,i});
     }
-    const act=meses.filter(m=>pP(rI?rI[m.i]:'0')>0);
+    // Solo meses con ingresos > 0
+    const act=meses.filter(m=>{
+      if(!rI) return false;
+      return pP(rI[m.i])>0;
+    });
     if(act.length>0){
       D.meses   =act.map(m=>m.l);
       D.ingresos=act.map(m=>pP(rI?rI[m.i]:0));
@@ -347,13 +380,15 @@ function procesarCSV(txt){
     if(st.length>0) D.stock=st;
   }
 
-  // Barrios - buscar fila header con "Barrio"
-  const bHdr=rows.findIndex(r=>r[0]&&r[0].trim()==='Barrio');
-  if(bHdr>=0){
+  // Barrios - buscar seccion VENTAS POR BARRIO luego fila con "Barrio"
+  const bSec=rows.findIndex(r=>r.some(c=>String(c).includes('VENTAS POR BARRIO')));
+  const bHdr=rows.findIndex((r,idx)=>idx>=(bSec>=0?bSec:0)&&r[0]&&r[0].trim()==='Barrio');
+  const bStart=bHdr>=0?bHdr:(bSec>=0?bSec:- 1);
+  if(bStart>=0){
     const br=[];
-    for(let i=bHdr+1;i<Math.min(bHdr+20,rows.length);i++){
+    for(let i=bStart+1;i<Math.min(bStart+20,rows.length);i++){
       const r=rows[i]; const nom=String(r[0]||'').trim();
-      if(!nom||nom==='TOTAL'||nom.includes('Muestra')) continue;
+      if(!nom||nom==='TOTAL'||nom==='Barrio'||nom.includes('Muestra')) continue;
       const v=pP(r[3]);
       if(v>0) br.push({n:nom,v});
     }
@@ -402,8 +437,12 @@ async function sincronizar(){
 
 // ─── INICIO ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',()=>{
-  render(datosBase());  // mostrar datos reales inmediatamente
-  sincronizar();         // luego intentar actualizar desde Sheets
+  render(datosBase());
+  // sincronizar() desactivado - datos hardcodeados son los reales
+  // Presionar Sincronizar manualmente cuando quieras actualizar
+  document.getElementById('sdot').className='status-dot';
+  document.getElementById('stxt').textContent='Datos al 28/05/2026';
+  document.getElementById('last-updated').textContent='Datos al 28/05/2026 — presioná Sincronizar para actualizar';
 });
 </script>
 </body>
