@@ -48,7 +48,7 @@ const SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSL5Cvjs
 const DATOS_BASE = {
   kpis: {
     ventas: 7399500, costos: 5954466, margen: 1445034,
-    docenas: 295.5, cobranza: "99.0%", precioProm: 25043
+    docenas: 295.5, cobranza: "99.0%", precioProm: 25061
   },
   evolucion: {
     meses: ["Nov-25","Dic-25","Ene-26","Feb-26","Mar-26","Abr-26","May-26"],
@@ -234,8 +234,8 @@ let chartEvolucion=null, chartSabores=null, chartBarrios=null;
 
 function fmtP(n){
   if(!n||isNaN(n))return'$0';
-  if(n>=1000000)return'$'+(n/1000000).toFixed(2).replace(/\.?0+$/,'')+'M';
-  if(n>=1000)return'$'+Math.round(n/1000)+'K';
+  if(n>=1000000){const m=(n/1000000).toFixed(2);return'$'+m+'M';}
+  if(n>=1000)return'$'+Math.round(n/1000).toLocaleString('es-AR')+'K';
   return'$'+Math.round(n).toLocaleString('es-AR');
 }
 
@@ -247,7 +247,8 @@ function renderAll(d){
   document.getElementById('kpi-docenas').textContent  = d.kpis.docenas.toFixed(1)+' doz.';
   document.getElementById('kpi-cobranza').textContent = d.kpis.cobranza;
   document.getElementById('kpi-margen-pct').textContent = ((d.kpis.margen/d.kpis.ventas)*100).toFixed(1)+'% del ingreso';
-  document.getElementById('alert-precio-promedio').textContent = fmtP(d.kpis.precioProm);
+  const pp = d.kpis.precioProm||Math.round(d.kpis.ventas/d.kpis.docenas)||0;
+  document.getElementById('alert-precio-promedio').textContent = fmtP(pp);
   document.getElementById('alert-pendientes-entrega').textContent = d.alertas.pendientesEntrega;
   document.getElementById('alert-pendientes-cobro').textContent   = d.alertas.pendientesCobro;
   document.getElementById('alert-monto-cobro').textContent        = d.alertas.montoCobro > 0 ? fmtP(d.alertas.montoCobro) : '$0';
@@ -327,8 +328,12 @@ function parsePesos(s){
 }
 function parseNum(s){
   if(!s)return 0;
-  const c=String(s).replace(/[^\d.,\-]/g,'').replace(',','.');
-  return parseFloat(c)||0;
+  let str=String(s).trim();
+  // Handle accounting negatives like (1.0)
+  const neg=str.startsWith('(')&&str.endsWith(')');
+  const c=str.replace(/[^\d.,]/g,'').replace(',','.');
+  const v=parseFloat(c)||0;
+  return neg?-v:v;
 }
 
 function parsearCSV(text){
@@ -413,7 +418,7 @@ function parsearCSV(text){
   }
 
   // Barrios
-  const bIdx=rows.findIndex(r=>r[0]&&r[0].trim()==='VENTAS POR BARRIO');
+  const bIdx=rows.findIndex(r=>r.some(c=>String(c).trim()==='VENTAS POR BARRIO'));
   if(bIdx>=0){
     const br=[];
     for(let i=bIdx+1;i<Math.min(bIdx+20,rows.length);i++){
@@ -421,6 +426,7 @@ function parsearCSV(text){
       const nom=String(r[0]||'').trim();
       if(!nom||nom==='Barrio'||nom==='TOTAL'||nom===''||nom.includes('Muestra'))continue;
       const ing=parsePesos(r[3]);
+      if(nom==='Barrio'||nom==='Concepto') continue;
       if(ing>0) br.push({label:nom,ingresos:ing,pedidos:parseNum(r[1]),docenas:parseNum(r[2])});
     }
     if(br.length>0){
