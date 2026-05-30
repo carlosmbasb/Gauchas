@@ -158,6 +158,9 @@ h1,h2,h3{font-family:'Playfair Display',serif;}
     <div class="card card-pad" style="padding:18px 20px;"><div class="kpi-label">Margen Bruto</div><div class="kpi-value" id="km" style="color:var(--success);">—</div><div class="kpi-sub" id="kmp">— del ingreso</div></div>
     <div class="card card-pad" style="padding:18px 20px;"><div class="kpi-label">Docenas Vendidas</div><div class="kpi-value" id="kd">—</div><div class="kpi-sub">Volumen total</div></div>
     <div class="card card-pad" style="padding:18px 20px;"><div class="kpi-label">Ratio de Cobranza</div><div class="kpi-value" id="kcob" style="color:var(--success);">—</div><div class="kpi-sub">Cobrado vs facturado</div></div>
+    <div class="card card-pad" style="padding:18px 20px;"><div class="kpi-label">Ticket Promedio</div><div class="kpi-value" id="kticket" style="color:var(--gold-light);">—</div><div class="kpi-sub">Por pedido</div></div>
+    <div class="card card-pad" style="padding:18px 20px;"><div class="kpi-label">Prom. Docenas / Mes</div><div class="kpi-value" id="kdocmes">—</div><div class="kpi-sub">Promedio mensual</div></div>
+    <div class="card card-pad" style="padding:18px 20px;"><div class="kpi-label">Prom. Docenas / Semana</div><div class="kpi-value" id="kdocsem">—</div><div class="kpi-sub">Promedio semanal</div></div>
   </div>
 
   <!-- Evolución + Dona -->
@@ -309,6 +312,9 @@ function render(D){
   document.getElementById('kmp').textContent  = ((D.margen/D.ventas)*100).toFixed(1)+'% del ingreso';
   document.getElementById('kd').textContent   = D.docenas.toFixed(1)+' doz.';
   document.getElementById('kcob').textContent = D.cobranza;
+  document.getElementById('kticket').textContent = fM(D.ticketProm||86041);
+  document.getElementById('kdocmes').textContent = (D.docenasPorMes||42.2).toFixed(1)+' doz.';
+  document.getElementById('kdocsem').textContent = (D.docenasPorSemana||9.7).toFixed(1)+' doz.';
   document.getElementById('aPE').textContent  = D.pendEnt;
   document.getElementById('aPC').textContent  = D.pendCob;
   document.getElementById('aMC').textContent  = D.montoCob>0 ? fM(D.montoCob) : '$0';
@@ -521,6 +527,7 @@ function datosBase(){
     ventas:7399500, costos:5954466, margen:1445034,
     docenas:295.5, cobranza:'99.0%',
     pendEnt:0, pendCob:0, montoCob:0,
+    pedidos:86, ticketProm:86041, docenasPorMes:42.2, docenasPorSemana:9.7,
     meses:['Nov-25','Dic-25','Ene-26','Feb-26','Mar-26','Abr-26','May-26'],
     ingresos:[1886000,483000,557500,629000,500000,1546000,1798000],
     costos2: [1512408,405768,414990,501250,401000,1223050,1496000],
@@ -735,6 +742,15 @@ function procesarCSV(txt){
       if(con.includes('monto'))                       D.montoCob=val==='-'?0:(pP(val)||0);
     }
   }
+
+  // KPIs adicionales
+  const rPed=rows.find(r=>r[0]&&r[0].trim()==='Cantidad de pedidos');
+  const totPed=rPed?lastN(rPed):86;
+  D.pedidos=totPed;
+  D.ticketProm=totPed>0?Math.round(D.ventas/totPed):86041;
+  const mAct=D.evolucion.ingresos.filter(v=>v>0).length||7;
+  D.docenasPorMes=parseFloat((D.docenas/mAct).toFixed(1));
+  D.docenasPorSemana=parseFloat((D.docenas/(mAct*4.33)).toFixed(1));
 
   return D;
 }
