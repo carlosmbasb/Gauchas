@@ -526,7 +526,7 @@ function datosBase(){
   return {
     ventas:7399500, costos:5954466, margen:1445034,
     docenas:295.5, cobranza:'99.0%',
-    pendEnt:0, pendCob:0, montoCob:0,
+    pendEnt:1, pendCob:1, montoCob:196000,
     pedidos:86, ticketProm:86041, docenasPorMes:42.2, docenasPorSemana:9.7,
     meses:['Nov-25','Dic-25','Ene-26','Feb-26','Mar-26','Abr-26','May-26'],
     ingresos:[1886000,483000,557500,629000,500000,1546000,1798000],
@@ -763,11 +763,22 @@ async function sincronizar(){
   dot.className='status-dot spin'; txt.textContent='Sincronizando...';
   ico.style.animation='spin 1s linear infinite';
   try{
-    const url=CSV_URL+'&_t='+Date.now();
-    const res=await fetch(url,{cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const raw=await res.text();
-    const D=procesarCSV(raw);
+    // Intentar fetch directo primero, luego proxy si falla CORS
+    let raw = null;
+    try {
+      const urlDirect = CSV_URL + '&_t=' + Date.now();
+      const resDirect = await fetch(urlDirect, {cache:'no-store'});
+      if(resDirect.ok) raw = await resDirect.text();
+    } catch(corsErr) {
+      // Fetch directo bloqueado por CORS — usar proxy
+      const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(CSV_URL);
+      const resProxy = await fetch(proxyUrl, {cache:'no-store'});
+      if(!resProxy.ok) throw new Error('Proxy HTTP ' + resProxy.status);
+      raw = await resProxy.text();
+    }
+    if(!raw) throw new Error('Sin datos');
+    const rawFinal = raw;
+    const D=procesarCSV(rawFinal);
     render(D);
     const now=new Date().toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
     document.getElementById('last-updated').textContent='Última actualización: '+now;
@@ -781,12 +792,8 @@ async function sincronizar(){
 
 // ─── INICIO ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',()=>{
-  render(datosBase());
-  // sincronizar() desactivado - datos hardcodeados son los reales
-  // Presionar Sincronizar manualmente cuando quieras actualizar
-  document.getElementById('sdot').className='status-dot';
-  document.getElementById('stxt').textContent='Datos al 28/05/2026';
-  document.getElementById('last-updated').textContent='Datos al 28/05/2026 — presioná Sincronizar para actualizar';
+  render(datosBase()); // mostrar datos hardcodeados al instante
+  sincronizar();        // luego actualizar desde Sheets en segundo plano
 });
 </script>
 </body>
