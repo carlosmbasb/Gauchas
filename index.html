@@ -776,7 +776,7 @@ async function sincronizar(){
     // Proxy fallback
     if(!raw) {
       try {
-        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(CSV_URL + '&_t=' + ts);
+        const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(CSV_URL);
         const r2 = await fetch(proxyUrl);
         if(r2.ok) raw = await r2.text();
       } catch(e2) { /* falló */ }
