@@ -291,7 +291,7 @@ h1,h2,h3{font-family:'Playfair Display',serif;}
 </div>
 
 <script>
-const CSV_URL = "https://script.google.com/macros/s/AKfycbzZCGZ7YeKnqXyZcmDSgmQUve2aEs62hLpAB24netKXn2td11o7aUOXiyqG3fWvqA/exec";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSL5CvjsEXGF4MNnyn44zk8G5xJ8FDmbE2LbDKV8wabnY_G3neI3kCjfGZFBl3mWWKkBuWFTL_tUGjB/pub?gid=1761852221&single=true&output=csv";
 
 let chEv=null, chSab=null, chBar=null, chGan=null;
 
@@ -766,33 +766,23 @@ async function sincronizar(){
     // Intentar fetch directo primero, luego proxy si falla CORS
     let raw = null;
     const ts = Date.now();
-    const urlBase = CSV_URL + (CSV_URL.includes('?') ? '&' : '?') + '_t=' + ts;
-
-    // Intentar fetch directo (funciona desde GitHub Pages con Apps Script publicado)
+    // URL publica de Google Sheets — funciona sin CORS desde GitHub Pages
+    const urlDirect = CSV_URL + '&_t=' + ts;
     try {
-      const res = await fetch(urlBase, { redirect: 'follow' });
+      const res = await fetch(urlDirect, { cache: 'no-store', redirect: 'follow' });
       if(res.ok) raw = await res.text();
-    } catch(e1) { /* CORS bloqueado, intentar proxy */ }
+    } catch(e1) { /* intentar proxy */ }
 
-    // Fallback 1: allorigins
+    // Proxy fallback
     if(!raw) {
       try {
-        const p1 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(CSV_URL);
-        const r1 = await fetch(p1);
-        if(r1.ok) raw = await r1.text();
-      } catch(e2) { /* intentar siguiente */ }
-    }
-
-    // Fallback 2: corsproxy.io
-    if(!raw) {
-      try {
-        const p2 = 'https://corsproxy.io/?' + encodeURIComponent(CSV_URL);
-        const r2 = await fetch(p2);
+        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(CSV_URL + '&_t=' + ts);
+        const r2 = await fetch(proxyUrl);
         if(r2.ok) raw = await r2.text();
-      } catch(e3) { /* todos fallaron */ }
+      } catch(e2) { /* falló */ }
     }
 
-    if(!raw) throw new Error('Sin datos — todos los proxies fallaron');
+    if(!raw) throw new Error('Sin conexión');
     const rawFinal = raw;
     const D=procesarCSV(rawFinal);
     render(D);
