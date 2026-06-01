@@ -766,22 +766,33 @@ async function sincronizar(){
     // Intentar fetch directo primero, luego proxy si falla CORS
     let raw = null;
     const ts = Date.now();
-    // Apps Script URL: agregar ?_t= para evitar cache de Google
-    const urlDirect = CSV_URL + (CSV_URL.includes('?') ? '&' : '?') + '_t=' + ts;
+    const urlBase = CSV_URL + (CSV_URL.includes('?') ? '&' : '?') + '_t=' + ts;
+
+    // Intentar fetch directo (funciona desde GitHub Pages con Apps Script publicado)
     try {
-      const resDirect = await fetch(urlDirect, {
-        cache: 'no-store',
-        headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
-      });
-      if(resDirect.ok) raw = await resDirect.text();
-    } catch(corsErr) {
-      // Fallback: proxy
-      const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(urlDirect);
-      const resProxy = await fetch(proxyUrl, {cache:'no-store'});
-      if(!resProxy.ok) throw new Error('Proxy HTTP ' + resProxy.status);
-      raw = await resProxy.text();
+      const res = await fetch(urlBase, { redirect: 'follow' });
+      if(res.ok) raw = await res.text();
+    } catch(e1) { /* CORS bloqueado, intentar proxy */ }
+
+    // Fallback 1: allorigins
+    if(!raw) {
+      try {
+        const p1 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(CSV_URL);
+        const r1 = await fetch(p1);
+        if(r1.ok) raw = await r1.text();
+      } catch(e2) { /* intentar siguiente */ }
     }
-    if(!raw) throw new Error('Sin datos');
+
+    // Fallback 2: corsproxy.io
+    if(!raw) {
+      try {
+        const p2 = 'https://corsproxy.io/?' + encodeURIComponent(CSV_URL);
+        const r2 = await fetch(p2);
+        if(r2.ok) raw = await r2.text();
+      } catch(e3) { /* todos fallaron */ }
+    }
+
+    if(!raw) throw new Error('Sin datos — todos los proxies fallaron');
     const rawFinal = raw;
     const D=procesarCSV(rawFinal);
     render(D);
