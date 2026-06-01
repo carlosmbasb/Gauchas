@@ -465,7 +465,7 @@ function render(D){
   document.getElementById('lc-inv').textContent   = fK(uc.inversion);
   document.getElementById('lc-gmax').textContent  = fK(uc.gananciaMax);
   document.getElementById('lc-max-label').textContent = uc.lote + ' doz.';
-  document.getElementById('lc-progtext').textContent  = vendidas.toFixed(1) + ' / ' + uc.lote + ' doz.';
+  document.getElementById('lc-progtext').textContent  = uc.lote + ' doz.';
 
   // Barra de progreso
   document.getElementById('lc-bar').style.width    = pctVendido + '%';
