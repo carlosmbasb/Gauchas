@@ -287,13 +287,30 @@ h1,h2,h3{font-family:'Playfair Display',serif;}
     </div>
   </div>
 
+
+  <!-- SALDO DE CAJA MENSUAL -->
+  <div class="card card-pad" style="padding:22px 24px;margin-bottom:16px;">
+    <div class="gold-line"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div class="section-title">Saldo de Caja por Mes</div>
+        <div class="section-sub" style="margin-top:3px;">Cobrado en el mes menos compra del lote (cash out)</div>
+      </div>
+      <div style="display:flex;gap:14px;font-size:0.72rem;">
+        <span style="display:flex;align-items:center;gap:5px;color:var(--text-secondary);"><span style="width:10px;height:10px;background:rgba(76,175,122,0.6);border-radius:2px;display:inline-block;"></span>Mes positivo</span>
+        <span style="display:flex;align-items:center;gap:5px;color:var(--text-secondary);"><span style="width:10px;height:10px;background:rgba(224,82,82,0.6);border-radius:2px;display:inline-block;"></span>Mes negativo</span>
+      </div>
+    </div>
+    <div class="chart-evol-wrap"><canvas id="cCaja" role="img" aria-label="Saldo de caja mensual" style="max-width:100%;"></canvas></div>
+  </div>
+
 <footer style="text-align:center;padding:12px 0;color:var(--text-muted);font-size:0.65rem;word-break:break-word;letter-spacing:0.06em;text-transform:uppercase;">Panel de Control · Las Gauchas by Cai · Datos en tiempo real desde Google Sheets</footer>
 </div>
 
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSL5CvjsEXGF4MNnyn44zk8G5xJ8FDmbE2LbDKV8wabnY_G3neI3kCjfGZFBl3mWWKkBuWFTL_tUGjB/pub?gid=1761852221&single=true&output=csv";
 
-let chEv=null, chSab=null, chBar=null, chGan=null;
+let chEv=null, chSab=null, chBar=null, chGan=null, chCaja=null;
 
 // ─── FORMATEO ───────────────────────────────────────────
 function fM(n){
@@ -505,6 +522,54 @@ function render(D){
     lr.style.color = 'var(--text-muted)';
   }
 
+  // ── Saldo de Caja ────────────────────────────────────────────────────────
+  if(D.saldoCaja && D.saldoCaja.length > 0){
+    if(chCaja) chCaja.destroy();
+    const cajaMeses  = D.saldoCaja.map(s=>s.mes);
+    const cajaVals   = D.saldoCaja.map(s=>s.v);
+    const cajaColors = cajaVals.map(v=>v>=0?'rgba(76,175,122,0.85)':'rgba(224,82,82,0.85)');
+    const cajaBorder = cajaVals.map(v=>v>=0?'#4CAF7A':'#E05252');
+    chCaja = new Chart(document.getElementById('cCaja').getContext('2d'),{
+      type:'bar',
+      data:{labels:cajaMeses,datasets:[{
+        label:'Saldo de Caja',
+        data:cajaVals,
+        backgroundColor:cajaColors,
+        borderColor:cajaBorder,
+        borderWidth:1,
+        borderRadius:4,
+        borderSkipped:false
+      }]},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            backgroundColor:'rgba(22,20,16,0.96)',
+            borderColor:'rgba(201,168,76,0.3)',
+            borderWidth:0.5,
+            titleColor:'#C9A84C',
+            bodyColor:'#9A9080',
+            padding:10,
+            callbacks:{
+              label:ctx=>{
+                const v=ctx.parsed.y;
+                const neg=v<0; const abs=Math.abs(v);
+                const s=abs>=1000000?'$'+(abs/1000000).toFixed(2)+'M':abs>=1000?'$'+Math.round(abs/1000)+'K':'$'+Math.round(abs);
+                return ' Saldo: '+(neg?'-':'')+s;
+              }
+            }
+          }
+        },
+        scales:{
+          x:{ticks:{color:'#5C5648',font:{size:11},autoSkip:false,maxRotation:0},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},
+          y:{ticks:{color:'#5C5648',font:{size:10},callback:v=>{const neg=v<0;const abs=Math.abs(v);const s=abs>=1000000?'$'+(abs/1000000).toFixed(1)+'M':abs>=1000?'$'+Math.round(abs/1000)+'K':'$'+Math.round(abs);return (neg?'-':'')+s;}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}}
+        }
+      }
+    });
+  }
+
   // ── Barrios ──────────────────────────────────────────────────────────────
     // Barrios
   if(chBar) chBar.destroy();
@@ -524,46 +589,58 @@ function render(D){
 // ─── DATOS BASE (siempre disponibles) ───────────────────
 function datosBase(){
   return {
-    ventas:7399500, costos:5954466, margen:1445034,
-    docenas:295.5, cobranza:'99.0%',
-    pendEnt:0, pendCob:2, montoCob:252000,
-    pedidos:86, ticketProm:86041, docenasPorMes:42.2, docenasPorSemana:9.7,
-    meses:['Nov-25','Dic-25','Ene-26','Feb-26','Mar-26','Abr-26','May-26'],
-    ingresos:[1886000,483000,557500,629000,500000,1546000,1798000],
-    costos2: [1512408,405768,414990,501250,401000,1223050,1496000],
-    margen2: [373592, 77232, 142510,127750, 99000, 322950, 302000],
+    ventas:7794500, costos:6262466, margen:1532034,
+    docenas:309.5, cobranza:'100.1%',
+    pendEnt:0, pendCob:0, montoCob:0,
+    pedidos:89, ticketProm:87579, docenasPorMes:38.7, docenasPorSemana:8.9,
+    meses:['Nov-25','Dic-25','Ene-26','Feb-26','Mar-26','Abr-26','May-26','Jun-26'],
+    ingresos:[1886000,483000,557500,629000,500000,1546000,2078000,115000],
+    costos2: [1512408,405768,414990,501250,401000,1223050,1716000,88000],
+    margen2: [373592, 77232, 142510,127750, 99000, 322950, 362000,27000],
     sabores:[
-      {n:'Carne',   d:167.0, p:56.5, c:'#C9A84C'},
-      {n:'Queso',   d:89.5,  p:30.3, c:'#E8C96B'},
-      {n:'Pollo',   d:16.5,  p:5.6,  c:'#E08060'},
-      {n:'Choclo',  d:11.0,  p:3.7,  c:'#4CAF7A'},
-      {n:'Espinaca',d:11.5,  p:3.9,  c:'#6B9EE8'}
+      {n:'Carne',   d:176.5, p:57.0, c:'#C9A84C'},
+      {n:'Queso',   d:94.5,  p:30.5, c:'#E8C96B'},
+      {n:'Pollo',   d:16.5,  p:5.3,  c:'#E08060'},
+      {n:'Choclo',  d:11.0,  p:3.6,  c:'#4CAF7A'},
+      {n:'Espinaca',d:11.0,  p:3.6,  c:'#6B9EE8'}
     ],
     stock:[
-      {n:'Carne',   disp:11.5, entr:173.5, est:'ok'},
-      {n:'Queso',   disp:6.5,  entr:91.5,  est:'ok'},
-      {n:'Pollo',   disp:1.0,  entr:17.0,  est:'warn'},
-      {n:'Choclo',  disp:0,    entr:12.0,  est:'danger'},
-      {n:'Espinaca',disp:-1.0, entr:13.0,  est:'danger'}
+      {n:'Carne',   disp:0,   entr:184.5, est:'danger'},
+      {n:'Queso',   disp:0,   entr:98.0,  est:'danger'},
+      {n:'Pollo',   disp:1.0, entr:17.0,  est:'warn'},
+      {n:'Choclo',  disp:0,   entr:12.0,  est:'danger'},
+      {n:'Espinaca',disp:0,   entr:12.5,  est:'danger'}
     ],
     barrios:[
-      {n:'Laguna',          v:5277500},
+      {n:'Laguna',          v:5557500},
       {n:'Newman',          v:987000},
       {n:'Santa Bárbara',   v:259000},
       {n:'San Francisco',   v:184000},
+      {n:'San Isidro',      v:224000},
       {n:'Talar del lago',  v:150000},
-      {n:'San Isidro',      v:112000},
       {n:'Talar de Pacheco',v:92000},
       {n:'Pacheco Golf',    v:92000}
+    ],
+
+    // Saldo de caja mensual (cobrado - compra del lote)
+    saldoCaja:[
+      {mes:'Nov-25', v:-69064},
+      {mes:'Dic-25', v:114120},
+      {mes:'Ene-26', v:22624},
+      {mes:'Feb-26', v:228000},
+      {mes:'Mar-26', v:99000},
+      {mes:'Abr-26', v:-136000},
+      {mes:'May-26', v:978000},
+      {mes:'Jun-26', v:115000},
     ],
 
     // Ganancia neta por mes = margen - gastos proporcionales
     // Gastos mensuales promedio: $899,685 (total $10,796,214 / 12)
     // Pero usamos gastos reales proporcionales al volumen de ventas de cada mes
     gananciaNeta: {
-      meses:  ['Nov-25','Dic-25','Ene-26','Feb-26','Mar-26','Abr-26','May-26'],
-      margen: [373592,  77232,  142510,  127750,  99000,  322950,  302000],
-      gastos: [899685,  899685, 899685,  899685,  899685, 899685,  899685],
+      meses:  ['Nov-25','Dic-25','Ene-26','Feb-26','Mar-26','Abr-26','May-26','Jun-26'],
+      margen: [373592,  77232,  142510,  127750,  99000,  322950,  362000,  27000],
+      gastos: [899685,  899685, 899685,  899685,  899685, 899685,  899685,  899685],
       // ganancia = margen - gastos (mayoría negativos porque empresa en crecimiento)
       get neta(){ return this.meses.map((_,i)=>this.margen[i]-this.gastos[i]); }
     },
@@ -730,6 +807,29 @@ function procesarCSV(txt){
     if(br.length>0){ br.sort((a,b)=>b.v-a.v); D.barrios=br.slice(0,8); }
   }
 
+  // Saldo de caja
+  const rSaldo=rows.find(r=>r[0]&&r[0].trim()==='Saldo de Caja del mes');
+  if(rSaldo){
+    const act=[];
+    // Buscar header de meses
+    const hRow=rows.find(r=>r[0]&&r[0].trim()==='Concepto');
+    if(hRow){
+      for(let i=1;i<hRow.length;i++){
+        const mes=String(hRow[i]||'').trim();
+        if(/^(nov|dic|ene|feb|mar|abr|may|jun|jul|ago|sep|oct)/i.test(mes)&&!/total/i.test(mes)){
+          const v=String(rSaldo[i]||'').trim();
+          // Manejar negativos en paréntesis: ($69,064) → -69064
+          if(v&&v!=='-'&&v!==''){
+            const neg=v.startsWith('(')&&v.endsWith(')');
+            const num=parseFloat(v.replace(/[^0-9.]/g,''))||0;
+            act.push({mes,v:neg?-num:num});
+          }
+        }
+      }
+    }
+    if(act.length>0) D.saldoCaja=act;
+  }
+
   // Alertas
   const aHdr=rows.findIndex(r=>r[0]&&r[0].includes('ALERTAS'));
   if(aHdr>=0){
@@ -776,7 +876,7 @@ async function sincronizar(){
     // Proxy fallback
     if(!raw) {
       try {
-        const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(CSV_URL);
+        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(CSV_URL + '&_t=' + ts);
         const r2 = await fetch(proxyUrl);
         if(r2.ok) raw = await r2.text();
       } catch(e2) { /* falló */ }
