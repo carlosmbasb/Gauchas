@@ -308,7 +308,7 @@ h1,h2,h3{font-family:'Playfair Display',serif;}
 </div>
 
 <script>
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSL5CvjsEXGF4MNnyn44zk8G5xJ8FDmbE2LbDKV8wabnY_G3neI3kCjfGZFBl3mWWKkBuWFTL_tUGjB/pub?gid=1761852221&single=true&output=csv";
+const CSV_URL = "https://summer-frog-057e.carlosmbasb.workers.dev/";
 
 let chEv=null, chSab=null, chBar=null, chGan=null, chCaja=null;
 
@@ -589,8 +589,8 @@ function render(D){
 // ─── DATOS BASE (siempre disponibles) ───────────────────
 function datosBase(){
   return {
-    ventas:7794500, costos:6262466, margen:1532034,
-    docenas:309.5, cobranza:'100.1%',
+    ventas:7805500, costos:6262466, margen:1543034,
+    docenas:309.5, cobranza:'100.0%',
     pendEnt:0, pendCob:0, montoCob:0,
     pedidos:89, ticketProm:87579, docenasPorMes:38.7, docenasPorSemana:8.9,
     meses:['Nov-25','Dic-25','Ene-26','Feb-26','Mar-26','Abr-26','May-26','Jun-26'],
@@ -624,14 +624,14 @@ function datosBase(){
 
     // Saldo de caja mensual (cobrado - compra del lote)
     saldoCaja:[
-      {mes:'Nov-25', v:-69064},
+      {mes:'Nov-25', v:-67064},
       {mes:'Dic-25', v:114120},
       {mes:'Ene-26', v:22624},
       {mes:'Feb-26', v:228000},
       {mes:'Mar-26', v:99000},
-      {mes:'Abr-26', v:-136000},
-      {mes:'May-26', v:978000},
-      {mes:'Jun-26', v:115000},
+      {mes:'Abr-26', v:-131000},
+      {mes:'May-26', v:982000},
+      {mes:'Jun-26', v:-325000},
     ],
 
     // Ganancia neta por mes = margen - gastos proporcionales
@@ -865,22 +865,12 @@ async function sincronizar(){
   try{
     // Intentar fetch directo primero, luego proxy si falla CORS
     let raw = null;
-    const ts = Date.now();
-    // URL publica de Google Sheets — funciona sin CORS desde GitHub Pages
-    const urlDirect = CSV_URL + '&_t=' + ts;
+    // Cloudflare Worker — sin problemas de CORS, datos frescos siempre
+    const urlWorker = CSV_URL + '?_t=' + Date.now();
     try {
-      const res = await fetch(urlDirect, { cache: 'no-store', redirect: 'follow' });
+      const res = await fetch(urlWorker, { cache: 'no-store' });
       if(res.ok) raw = await res.text();
-    } catch(e1) { /* intentar proxy */ }
-
-    // Proxy fallback
-    if(!raw) {
-      try {
-        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(CSV_URL + '&_t=' + ts);
-        const r2 = await fetch(proxyUrl);
-        if(r2.ok) raw = await r2.text();
-      } catch(e2) { /* falló */ }
-    }
+    } catch(e) { /* falló */ }
 
     if(!raw) throw new Error('Sin conexión');
     const rawFinal = raw;
