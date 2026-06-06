@@ -589,37 +589,37 @@ function render(D){
 // ─── DATOS BASE (siempre disponibles) ───────────────────
 function datosBase(){
   return {
-    ventas:7805500, costos:6262466, margen:1543034,
-    docenas:309.5, cobranza:'100.0%',
+    ventas:8387500, costos:6713466, margen:1674034,
+    docenas:330.0, cobranza:'100.0%',
     pendEnt:0, pendCob:0, montoCob:0,
-    pedidos:89, ticketProm:87579, docenasPorMes:38.7, docenasPorSemana:8.9,
+    pedidos:92, ticketProm:91168, docenasPorMes:41.3, docenasPorSemana:9.5,
     meses:['Nov-25','Dic-25','Ene-26','Feb-26','Mar-26','Abr-26','May-26','Jun-26'],
-    ingresos:[1886000,483000,557500,629000,500000,1546000,2078000,115000],
-    costos2: [1512408,405768,414990,501250,401000,1223050,1716000,88000],
-    margen2: [373592, 77232, 142510,127750, 99000, 322950, 362000,27000],
+    ingresos:[1888000,483000,557500,629000,500000,1551000,2082000,697000],
+    costos2: [1512408,405768,414990,501250,401000,1223050,1716000,539000],
+    margen2: [375592, 77232, 142510,127750, 99000, 327950, 366000,158000],
     sabores:[
-      {n:'Carne',   d:176.5, p:57.0, c:'#C9A84C'},
-      {n:'Queso',   d:94.5,  p:30.5, c:'#E8C96B'},
-      {n:'Pollo',   d:16.5,  p:5.3,  c:'#E08060'},
-      {n:'Choclo',  d:11.0,  p:3.6,  c:'#4CAF7A'},
-      {n:'Espinaca',d:11.0,  p:3.6,  c:'#6B9EE8'}
+      {n:'Carne',   d:189.0, p:57.3, c:'#C9A84C'},
+      {n:'Queso',   d:101.0, p:30.6, c:'#E8C96B'},
+      {n:'Pollo',   d:17.5,  p:5.3,  c:'#E08060'},
+      {n:'Choclo',  d:11.5,  p:3.5,  c:'#4CAF7A'},
+      {n:'Espinaca',d:11.0,  p:3.3,  c:'#6B9EE8'}
     ],
     stock:[
-      {n:'Carne',   disp:0,   entr:184.5, est:'danger'},
-      {n:'Queso',   disp:0,   entr:98.0,  est:'danger'},
-      {n:'Pollo',   disp:1.0, entr:17.0,  est:'warn'},
-      {n:'Choclo',  disp:0,   entr:12.0,  est:'danger'},
+      {n:'Carne',   disp:0,   entr:197.0, est:'danger'},
+      {n:'Queso',   disp:1.5, entr:104.5, est:'warn'},
+      {n:'Pollo',   disp:0,   entr:18.0,  est:'danger'},
+      {n:'Choclo',  disp:0,   entr:12.5,  est:'danger'},
       {n:'Espinaca',disp:0,   entr:12.5,  est:'danger'}
     ],
     barrios:[
       {n:'Laguna',          v:5557500},
       {n:'Newman',          v:987000},
+      {n:'San Isidro',      v:448000},
       {n:'Santa Bárbara',   v:259000},
+      {n:'Pacheco Golf',    v:274000},
+      {n:'Talar de Pacheco',v:260000},
       {n:'San Francisco',   v:184000},
-      {n:'San Isidro',      v:224000},
-      {n:'Talar del lago',  v:150000},
-      {n:'Talar de Pacheco',v:92000},
-      {n:'Pacheco Golf',    v:92000}
+      {n:'Talar del lago',  v:150000}
     ],
 
     // Saldo de caja mensual (cobrado - compra del lote)
@@ -631,7 +631,7 @@ function datosBase(){
       {mes:'Mar-26', v:99000},
       {mes:'Abr-26', v:-131000},
       {mes:'May-26', v:982000},
-      {mes:'Jun-26', v:-325000},
+      {mes:'Jun-26', v:257000},
     ],
 
     // Ganancia neta por mes = margen - gastos proporcionales
@@ -639,7 +639,7 @@ function datosBase(){
     // Pero usamos gastos reales proporcionales al volumen de ventas de cada mes
     gananciaNeta: {
       meses:  ['Nov-25','Dic-25','Ene-26','Feb-26','Mar-26','Abr-26','May-26','Jun-26'],
-      margen: [373592,  77232,  142510,  127750,  99000,  322950,  362000,  27000],
+      margen: [375592,  77232,  142510,  127750,  99000,  327950,  366000,  158000],
       gastos: [899685,  899685, 899685,  899685,  899685, 899685,  899685,  899685],
       // ganancia = margen - gastos (mayoría negativos porque empresa en crecimiento)
       get neta(){ return this.meses.map((_,i)=>this.margen[i]-this.gastos[i]); }
@@ -647,17 +647,15 @@ function datosBase(){
 
     // Última compra / punto de equilibrio
     ultimaCompra: {
-      lote:         23.0,    // docenas compradas
-      pe:           18.1,    // punto de equilibrio en docenas
+      lote:         20.0,    // docenas compradas
+      pe:           15.7,    // punto de equilibrio en docenas
       peBpct:       78.6,    // % del lote para break-even
-      inversion:    506000,  // $22,000 x 23 docenas
+      inversion:    440000,  // $22,000 x 20 docenas
       costoUnit:    22000,
       precioUnit:   28000,
       margenUnit:   6000,
-      gananciaMax:  138000,  // si vende todo
-      // docenas vendidas del lote actual (May-26 fue el último mes activo)
-      // usamos las docenas de mayo como proxy del lote en curso
-      vendidas:     64.0     // total docenas May-26 según CSV
+      gananciaMax:  120000,  // si vende todo
+      vendidas:     20.0     // lote completo vendido (jun-26 = 24.5 doz > lote)
     }
   };
 }
