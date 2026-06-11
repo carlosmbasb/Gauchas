@@ -704,9 +704,9 @@ function procesarCSV(txt){
   const rows=parseCSV(txt);
   const D=datosBase();
 
-  const rI=rows.find(r=>r[0]&&r[0].trim()==='Total ingresos');
-  const rC=rows.find(r=>r[0]&&r[0].trim()==='Total costos del negocio');
-  const rM=rows.find(r=>r[0]&&r[0].trim()==='Margen bruto');
+  const rI=rows.find(r=>r[0]&&(r[0].trim()==='Total ingresos'||r[0].trim()==='Ingresos por venta y logística'));
+  const rC=rows.find(r=>r[0]&&(r[0].trim()==='Total costos del negocio'||r[0].includes('Total costos')));
+  const rM=rows.find(r=>r[0]&&r[0].trim().toLowerCase().startsWith('margen bruto')&&!r[0].includes('%'));
   const rD=rows.find(r=>r[0]&&r[0].trim()==='Docenas vendidas');
   const rCb=rows.find(r=>r[0]&&r[0].trim()==='% cobranza');
 
@@ -750,7 +750,7 @@ function procesarCSV(txt){
     }
     // Solo meses con ingresos > 0
     const act=meses.filter(m=>{
-      if(!rI) return false;
+      if(!rI) return true; // si no hay fila de ingresos, incluir todos los meses con header
       return pP(rI[m.i])>0;
     });
     if(act.length>0){
@@ -846,7 +846,7 @@ function procesarCSV(txt){
   const totPed=rPed?lastN(rPed):86;
   D.pedidos=totPed;
   D.ticketProm=totPed>0?Math.round(D.ventas/totPed):86041;
-  const mAct=D.evolucion.ingresos.filter(v=>v>0).length||7;
+  const mAct=(D.ingresos||D.evolucion&&D.evolucion.ingresos||[]).filter(v=>v>0).length||7;
   D.docenasPorMes=parseFloat((D.docenas/mAct).toFixed(1));
   D.docenasPorSemana=parseFloat((D.docenas/(mAct*4.33)).toFixed(1));
 
