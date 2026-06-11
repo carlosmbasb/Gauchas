@@ -841,6 +841,27 @@ function procesarCSV(txt){
     }
   }
 
+  // Última compra — leer sección PUNTO DE EQUILIBRIO
+  const peIdx=rows.findIndex(r=>r[0]&&r[0].includes('PUNTO DE EQUILIBRIO'));
+  if(peIdx>=0){
+    for(let i=peIdx;i<Math.min(peIdx+15,rows.length);i++){
+      const r=rows[i];
+      const k=String(r[0]||'').trim();
+      if(k==='Tamaño del último lote (docenas)')    D.ultimaCompra.lote      = pN(r[1])||D.ultimaCompra.lote;
+      if(k==='Costo unitario actual')               D.ultimaCompra.costoUnit = pP(r[1])||D.ultimaCompra.costoUnit;
+      if(k==='Precio unitario actual')              D.ultimaCompra.precioUnit= pP(r[1])||D.ultimaCompra.precioUnit;
+      if(k==='Margen unitario'&&!k.includes('%'))   D.ultimaCompra.margenUnit= pP(r[1])||D.ultimaCompra.margenUnit;
+      if(k==='Inversión en el lote')                D.ultimaCompra.inversion = pP(r[1])||D.ultimaCompra.inversion;
+      if(k==='Punto de equilibrio (docenas a vender)') D.ultimaCompra.pe     = pN(r[1])||D.ultimaCompra.pe;
+      if(k==='% del lote para break-even')          D.ultimaCompra.peBpct   = parseFloat(String(r[1]).replace('%',''))||D.ultimaCompra.peBpct;
+      if(k==='Ganancia máxima si vende todo')       D.ultimaCompra.gananciaMax = pP(r[1])||D.ultimaCompra.gananciaMax;
+    }
+    // vendidas = mínimo entre el lote y las docenas del último mes activo
+    const ultMesVentas = (D.margen2||D.margen||[]).length;
+    const docUltMes = ultMesVentas > 0 ? (D.costos2||[])[ultMesVentas-1]||0 : 0;
+    D.ultimaCompra.vendidas = Math.min(D.ultimaCompra.lote, D.ultimaCompra.lote); // lote completo por defecto
+  }
+
   // KPIs adicionales
   const rPed=rows.find(r=>r[0]&&r[0].trim()==='Cantidad de pedidos');
   const totPed=rPed?lastN(rPed):86;
